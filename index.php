@@ -96,7 +96,7 @@ add_action('rest_api_init', function () {
 
 function handle_proxy_request(WP_REST_Request $request)
 {
-    $url = urldecode($request->get_param('url'));
+    $url = $request->get_param('url');
     // Extract data from the request
     $data = $request->get_json_params();
 
