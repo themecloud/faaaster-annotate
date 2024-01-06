@@ -96,6 +96,7 @@ add_action('rest_api_init', function () {
 
 function handle_proxy_request(WP_REST_Request $request)
 {
+    $url = urldecode($request->get_param('url'));
     // Extract data from the request
     $data = $request->get_json_params();
 
@@ -105,7 +106,10 @@ function handle_proxy_request(WP_REST_Request $request)
 
     // Define the request arguments
     $args = array(
-        'body' => json_encode($data),
+        'body' => json_encode(array(
+            'url' => $url,
+            'data' => $data
+        )),
         'headers' => array(
             'Content-Type' => 'application/json',
             'Authorization' => 'Bearer ' .  WP_API_KEY, // Add the Authorization header with the API key

@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var cookie = appConfig.cookie;
     var url = window.location.protocol + '//' + window.location.host + window.location.pathname;
     var encodedUrl = encodeURIComponent(url);
+    var encodedPathName = window.location.pathname.replace(/\//g, '');
 
     // Set cookie if not exists
     if(!cookie){
@@ -88,15 +89,16 @@ document.addEventListener('DOMContentLoaded', function () {
             list.appendChild(listItem);
             console.log("creator", annotation.body[0].creator);
             var newItem = document.querySelector("[data-annotation-id='"+annotation.id+"'"); //
-            var listItem = '<div class="r6o-editor" style="margin-left: 0;opacity: 1; position:relative;width:300px;"><div class="r6o-editor-inner"><div class="r6o-widget comment"><textarea class="r6o-editable-text" placeholder="Add a comment..." disabled="" rows="1" style="overflow: hidden; overflow-wrap: break-word; height: 36px;">'+ annotation.body[0].value +'</textarea><div class="r6o-lastmodified"><span class="r6o-lastmodified-by">' + annotation.body[0].creator.name + '</span><span class="r6o-lastmodified-at"><time class="" datetime="1704493363444" timeago-id="1343">' + prettyModified + '</time></span></div><div class="r6o-icon r6o-arrow-down"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 940" width="12"><metadata>IcoFont Icons</metadata><title>simple-down</title><glyph glyph-name="simple-down" unicode="" horiz-advx="1000"></glyph><path fill="currentColor" d="M200 392.6l300 300 300-300-85.10000000000002-85.10000000000002-214.89999999999998 214.79999999999995-214.89999999999998-214.89999999999998-85.10000000000002 85.20000000000005z"></path></svg></div></div><div class="r6o-widget comment editable"><textarea class="r6o-editable-text" placeholder="Add a reply..." rows="1" style="overflow: hidden; overflow-wrap: break-word; height: 36px;"></textarea></div><div class="r6o-widget r6o-tag"><div class="r6o-autocomplete"><div><input placeholder="Add tag..."></div><ul></ul></div></div><div class="r6o-footer"><button class="r6o-btn left delete-annotation" title="Delete"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12"><path fill="currentColor" d="M268 416h24a12 12 0 0 0 12-12V188a12 12 0 0 0-12-12h-24a12 12 0 0 0-12 12v216a12 12 0 0 0 12 12zM432 80h-82.41l-34-56.7A48 48 0 0 0 274.41 0H173.59a48 48 0 0 0-41.16 23.3L98.41 80H16A16 16 0 0 0 0 96v16a16 16 0 0 0 16 16h16v336a48 48 0 0 0 48 48h288a48 48 0 0 0 48-48V128h16a16 16 0 0 0 16-16V96a16 16 0 0 0-16-16zM171.84 50.91A6 6 0 0 1 177 48h94a6 6 0 0 1 5.15 2.91L293.61 80H154.39zM368 464H80V128h288zm-212-48h24a12 12 0 0 0 12-12V188a12 12 0 0 0-12-12h-24a12 12 0 0 0-12 12v216a12 12 0 0 0 12 12z"></path></svg></button><button class="r6o-btn outline">Cancel</button><button class="r6o-btn ">Ok</button></div></div></div>';
+            var listItem = '<div><h3>Click</h3></div><div class="r6o-editor" style="margin-left: 0;opacity: 1; position:relative;width:300px;"><div class="r6o-editor-inner"><div class="r6o-widget comment"><textarea class="r6o-editable-text" placeholder="Add a comment..." disabled="" rows="1" style="overflow: hidden; overflow-wrap: break-word; height: 36px;">'+ annotation.body[0].value +'</textarea><div class="r6o-lastmodified"><span class="r6o-lastmodified-by">' + annotation.body[0].creator.name + '</span><span class="r6o-lastmodified-at"><time class="" datetime="1704493363444" timeago-id="1343">' + prettyModified + '</time></span></div><div class="r6o-icon r6o-arrow-down"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 940" width="12"><metadata>IcoFont Icons</metadata><title>simple-down</title><glyph glyph-name="simple-down" unicode="" horiz-advx="1000"></glyph><path fill="currentColor" d="M200 392.6l300 300 300-300-85.10000000000002-85.10000000000002-214.89999999999998 214.79999999999995-214.89999999999998-214.89999999999998-85.10000000000002 85.20000000000005z"></path></svg></div></div><div class="r6o-widget comment editable"><textarea class="r6o-editable-text" placeholder="Add a reply..." rows="1" style="overflow: hidden; overflow-wrap: break-word; height: 36px;"></textarea></div><div class="r6o-widget r6o-tag"><div class="r6o-autocomplete"><div><input placeholder="Add tag..."></div><ul></ul></div></div><div class="r6o-footer"><button class="r6o-btn left delete-annotation" title="Delete"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="12"><path fill="currentColor" d="M268 416h24a12 12 0 0 0 12-12V188a12 12 0 0 0-12-12h-24a12 12 0 0 0-12 12v216a12 12 0 0 0 12 12zM432 80h-82.41l-34-56.7A48 48 0 0 0 274.41 0H173.59a48 48 0 0 0-41.16 23.3L98.41 80H16A16 16 0 0 0 0 96v16a16 16 0 0 0 16 16h16v336a48 48 0 0 0 48 48h288a48 48 0 0 0 48-48V128h16a16 16 0 0 0 16-16V96a16 16 0 0 0-16-16zM171.84 50.91A6 6 0 0 1 177 48h94a6 6 0 0 1 5.15 2.91L293.61 80H154.39zM368 464H80V128h288zm-212-48h24a12 12 0 0 0 12-12V188a12 12 0 0 0-12-12h-24a12 12 0 0 0-12 12v216a12 12 0 0 0 12 12z"></path></svg></button><button class="r6o-btn outline">Cancel</button><button class="r6o-btn ">Ok</button></div></div></div>';
             newItem.innerHTML += listItem;
 
 
         });
     }
     // Function to scroll and highlight selected annotation
-    function setupHoverListeners() {
-        var sidebarAnnotations = document.getElementById('annotationSidebar').getElementsByTagName('li');
+    function setupClickListeners() {
+        console.log("listen clicks");
+        var sidebarAnnotations = document.getElementById('sidebar-annotations').getElementsByTagName('li');
         Array.from(sidebarAnnotations).forEach(item => {
             item.addEventListener('click', function() {
                 console.log("item", item);
@@ -119,31 +121,84 @@ document.addEventListener('DOMContentLoaded', function () {
             }, 3000); // Duration of highlight in milliseconds
         }
     }
+
+    // Function to generate a unique selector for an element
+    function generateSelector(context) {
+        let index, pathSelector, localName;
+
+        if (context == "null") throw "not an dom reference";
+        // call getIndex function
+        index = getIndex(context);
+
+        while (context.tagName) {
+            // selector path
+
+            const className = context.className
+            const idName = context.id
+
+            pathSelector = context.localName +
+                            ( className ? `.${className}` : "") +
+                            ( idName ? `#${idName}` : "") +
+                            (pathSelector ? ">" + pathSelector : "");
+
+            context = context.parentNode;
+        }
+        // selector path for nth of type
+        pathSelector = pathSelector + `:nth-of-type(${index})`;
+        return pathSelector;
+    }
+
+    // get index for nth of type element
+    function getIndex(node) {
+        let i = 1;
+        let tagName = node.tagName;
+
+        while (node.previousSibling) {
+        node = node.previousSibling;
+        if (
+            node.nodeType === 1 &&
+            tagName.toLowerCase() == node.tagName.toLowerCase()
+        ) {
+            i++;
+        }
+        }
+        return i;
+    }
     // Load existing annotations
-    anno.loadAnnotations('/wp-json/annotate/v1/annotations?url='+encodedUrl).then(function (annotations) {
+    anno.loadAnnotations('/wp-json/annotate/v1/annotations?url='+encodedPathName).then(function (annotations) {
         console.log("annotations loaded", annotations);
         updateSidebar(annotations);
-        setupHoverListeners();
+        setupClickListeners();
     });
 
     // Store selected dom path
-    var selectedElement = document.querySelector('.r6o-selection');
+    var uniqueSelector = null;
+    document.addEventListener('mouseup', function() {
+        var selectedElement = document.querySelector('.r6o-selection');
+        if(selectedElement){
+            parentElement = selectedElement.parentNode;
+            uniqueSelector = generateSelector(parentElement);
+            console.log("uniqueSelector", uniqueSelector);
+        }
 
-    //var uniqueSelector = getUniqueSelector(selectedElement);
+    });
 
 
     // Optimize and store annotations
 
     anno.on('createAnnotation', function (annotation) {
-        annotation.url = url;
+
+
         var commentsData = anno.getAnnotations();
         // find the annotation in the array with the id
         var index = commentsData.findIndex(x => x.id === annotation.id);
         // update the annotation
         commentsData[index].url = url;
+        console.log("uniqueSelector", uniqueSelector);
+        commentsData[index].selector = uniqueSelector;
         updateSidebar(commentsData);
         console.log("commentsData", commentsData);
-        fetch('/wp-json/annotate/v1/proxy/', {
+        fetch('/wp-json/annotate/v1/proxy/?url='+encodedPathName, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
