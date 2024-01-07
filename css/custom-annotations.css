@@ -22,7 +22,12 @@
     overflow-y:scroll;
     font-family: Inter !important;
     font-size:14px;
+    transition:right 0.3s ease;
 }
+#annotationSidebar.sideBarHidden {
+    right: -300px;
+}
+
 #annotationSidebar.annotationAdmin{
     height: calc(100vh - 32px);
     padding-top: 32px;
@@ -38,7 +43,14 @@
     color:white;
 }
 #sidebar-help{
-    padding:20px;
+    padding:10px 20px;
+    background-color: #f8fafd;
+}
+
+#sidebar-help h4{
+    font-size:12px;
+    font-family: Inter;
+    margin:0;
 }
 #annotationSidebar h2{
     font-size:20px;
@@ -47,11 +59,7 @@
     position: relative;
     display: inline-block;
 }
-#annotationSidebar h4{
-    font-size:16px;
-    font-family: Inter;
-    margin:0;
-}
+
 
 #annotate-mode{
     position: absolute;
@@ -97,8 +105,15 @@
     top:calc(50% - 20px);
     color:#00458b;
     border: 1px solid #cccccc;
+    transition:right 0.3s ease;
+    cursor:pointer;
 }
-
+#annotationSidebar.sideBarHidden #anno-minimize{
+    right: 0;
+}
+#annotationSidebar.sideBarHidden #anno-minimize svg{
+    transform:rotate(180deg);
+}
 #mySwitchLabel {
     /* Styling for the label to make it look like a switch */
     cursor: pointer;
@@ -142,6 +157,7 @@
 .sidebar-annotation{
     padding : 10px 0;
     border-bottom: 1px solid #ccc;
+    cursor:pointer;
 }
 .sidebar-annotation-meta{
     display:flex;
