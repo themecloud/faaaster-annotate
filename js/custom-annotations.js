@@ -143,9 +143,8 @@ document.addEventListener("DOMContentLoaded", function () {
     annotateMode = this.checked;
     console.log("annotateMode state is now:", annotateMode);
     if (annotateMode == false) {
-        anno.destroy();
+      anno.destroy();
     } else {
-
     }
   });
 
@@ -153,8 +152,6 @@ document.addEventListener("DOMContentLoaded", function () {
   if (document.getElementById("wpadminbar")) {
     sidebar.classList.add("annotationAdmin");
   }
-
-  function initAnno(){
 
   // Initialize recogito.js
   var anno = Recogito.init({
