@@ -1,8 +1,8 @@
 /* Define the font face */
 @font-face {
     font-family: 'Inter';
-    src: url('fonts/inter/Inter-Regular.ttf') format('ttf'),
-         url('fonts/inter/Inter-Regular.ttf') format('ttf');
+    src: url('https://efeefefefef.themecloud.dev//wp-content/plugins/annotate/fonts/inter/Inter-Regular.ttf') format('truetype'),
+         url('https://efeefefefef.themecloud.dev//wp-content/plugins/annotate/fonts/inter/Inter-Regular.ttf') format('truetype');
     font-weight: 400;
     font-style: normal;
 }
@@ -14,32 +14,62 @@
     top: 0;
     right: 0;
     width: 300px;
-    height: calc(100vh - 35px);
+    
     background-color: white;
     border-left: 1px solid #ccc;
     overflow-y: auto;
-    padding-top: 35px;
+   
     overflow-y:scroll;
-    font-family: "Inter";
+    font-family: Inter !important;
+    font-size:14px;
+}
+#annotationSidebar.annotationAdmin{
+    height: calc(100vh - 32px);
+    padding-top: 32px;
 }
 #annotationSidebar ul{
     list-style: none;
-    padding: 0;
     margin: 0;
 }
+#sidebar-title{
+    background-color:#00458b;
+    padding:0 20px;
+    text-align:center;
+    color:white;
+}
+#sidebar-help{
+    padding:20px;
+}
 #annotationSidebar h2{
-    font-size:32px;
+    font-size:20px;
     font-family: Inter;
+    margin: 10px 0;
+    position: relative;
+    display: inline-block;
+}
+#annotationSidebar h4{
+    font-size:16px;
+    font-family: Inter;
+    margin:0;
 }
 
 #annotate-mode{
-    position:absolute;
-    bottom:0;
-    z-index:99;
-    width:100%;
-    background:grey;
-    height:60px;
+    position: absolute;
+    bottom: 0;
+    z-index: 99;
+    width: calc(100% - 20px);
+    background: grey;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px;
+    background-color:#f8fafd;
 }
+.mySwitchText{
+    width:100px;
+}
+
 
 /* Styling for the switch */
 #mySwitch {
@@ -47,6 +77,26 @@
     opacity: 0;
     width: 0;
     height: 0;
+}
+
+#sidebar-header{
+    
+}
+
+#anno-minimize{
+    position:fixed;
+    width:15px;
+    height:40px;
+    background:white;
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    right: 300px;
+    top:calc(50% - 20px);
+    color:#00458b;
+    border: 1px solid #cccccc;
 }
 
 #mySwitchLabel {
@@ -76,11 +126,66 @@
 
 #mySwitch:checked + #mySwitchLabel {
     /* Change background when checked */
-    background: #4CAF50;
+    background: #3fd2c6;
 }
 
 #mySwitch:checked + #mySwitchLabel:after {
     /* Move the knob to the right when checked */
     left: calc(100% - 2px);
     transform: translateX(-100%);
+}
+
+#sidebar-annotations{
+    padding:20px;
+    
+}
+.sidebar-annotation{
+    padding : 10px 0;
+    border-bottom: 1px solid #ccc;
+}
+.sidebar-annotation-meta{
+    display:flex;
+    justify-content: space-between;
+    color:  #666;
+    font-size:12px;
+}
+.anno-comments-number{
+    background-color: #3fd2c6;
+    display:flex;
+    width:15px;
+    height:15px;
+    justify-content: center;
+    align-items: center;
+    color:white;
+    border-radius:15px;
+}
+/************** CURSOR **************/
+
+.faaaster-annotate { cursor: copy; }
+.r6o-annotation { cursor: pointer; }
+
+/************** ANNO **************/
+
+.r6o-annotation{
+    position:relative;
+    background-color: #3fd2c614;
+    border:none; 
+}
+.r6o-annotation:before{
+    content:"test";
+    position:absolute;
+    top:-30px;
+    left:0;
+    display: inline-block;
+    width:30px;
+    height:30px;
+    border-radius: 30px;
+    background-color: #3fd2c6;
+    z-index:99999;
+    font-family: Inter;
+    font-size:12px;
+    color:white;
+}
+.r6o-annotation:hover:before{
+    transform:scale(1.2);
 }
