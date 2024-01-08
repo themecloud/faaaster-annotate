@@ -79,7 +79,7 @@ function fetch_annotations(WP_REST_Request $request)
     if (is_wp_error($response)) {
         return new WP_Error('request_failed', 'API request failed', array('status' => 500));
     }
-
+    nocache_headers();
     // You may format the response as needed
     return rest_ensure_response(json_decode(wp_remote_retrieve_body($response), true));
 }
@@ -115,7 +115,7 @@ function handle_proxy_request(WP_REST_Request $request)
     if (is_wp_error($response)) {
         return new WP_Error('request_failed', 'API request failed', array('status' => 500));
     }
-
+    nocache_headers();
     // You may format the response as needed
     return rest_ensure_response(json_decode(wp_remote_retrieve_body($response), true));
 }
