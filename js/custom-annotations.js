@@ -1,4 +1,4 @@
-import {finder} from '@medv/finder'
+import { finder } from "@medv/finder";
 
 document.addEventListener("DOMContentLoaded", function () {
   // Access applicationId and instanceId from PHP
@@ -466,8 +466,54 @@ document.addEventListener("DOMContentLoaded", function () {
     return i;
   }
 
-  // Optimize annotations
+  // Optimize annotations new
 
+  function optimizeAnnotations(annotations) {
+    annotations.forEach((annotation) => {
+      var elements = document.querySelectorAll(
+        "[data-id='" + annotation.id + "'"
+      );
+      console.log(annotation.id, " >> ", elements.length);
+      var newElement = document.querySelector(annotation.selector);
+      var elementOk = false;
+      elements.forEach((element) => {
+        const parentElement = element.parentNode;
+        if (parentElement !== newElement) {
+          element.classList.remove("r6o-annotation");
+          element.setAttribute("data-id", "");
+        } else {
+          element.style.setProperty(
+            "--after-content",
+            '"' + annotation.index + '"'
+          );
+          elementOk = true;
+        }
+      });
+      if (!elementOk) {
+        const spanElement = document.createElement("span");
+        spanElement.className = "r6o-annotation";
+        spanElement.setAttribute("data-id", annotation.id);
+        spanElement.style.setProperty(
+          "--after-content",
+          '"' + annotation.index + '"'
+        );
+        // Step 3: Move all content of the target element into the <span>
+        // This is done by appending the target's child nodes to the span
+        while (newElement.firstChild) {
+          spanElement.appendChild(newElement.firstChild);
+        }
+
+        // Step 4: Append the <span> back into the original element
+        newElement.appendChild(spanElement);
+        console.log("newElement", newElement);
+        //   newElement.classList.add("r6o-annotation");
+        //   newElement.setAttribute("data-id", annotation.id);
+      }
+    });
+  }
+
+  // Optimize annotations old
+  /*
   function optimizeAnnotations(annotations) {
     annotations.forEach((annotation) => {
       var elements = document.querySelectorAll(
@@ -524,7 +570,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
   }
-
+*/
   var uniqueSelector = null;
   // Store selected dom path
 
@@ -539,9 +585,8 @@ document.addEventListener("DOMContentLoaded", function () {
       event.stopPropagation();
       event.preventDefault();
       var clickedElement = event.target; // Get the clicked element
-      var parentElement = clickedElement.parentNode;
       console.log("before unique selector");
-      uniqueSelector = generateSelector(parentElement);
+      uniqueSelector = generateSelector(clickedElement);
 
       var selection = window.getSelection();
       //if(!selection){
