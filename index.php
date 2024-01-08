@@ -33,7 +33,8 @@ function enqueue_recogito_scripts()
         $locale = get_locale();
         error_log($locale);
         // Enqueue your custom JS file
-        wp_enqueue_script('custom-annotations-js', plugin_dir_url(__FILE__) . 'js/custom-annotations.js', array('recogito-js'), '1.0.0', false);
+        //wp_enqueue_script('custom-annotations-js', plugin_dir_url(__FILE__) . 'js/custom-annotations.js', array('recogito-js'), '1.0.0', false);
+        wp_enqueue_script('custom-annotations-js', plugin_dir_url(__FILE__) . 'dist/bundle.js', array(), '1.0.0', false);
         // Localize script to pass data from PHP to JavaScript
         wp_localize_script('custom-annotations-js', 'appConfig', array(
             'locale' => $locale,

@@ -1,3 +1,5 @@
+import {finder} from '@medv/finder'
+
 document.addEventListener("DOMContentLoaded", function () {
   // Access applicationId and instanceId from PHP
   var locale = appConfig.locale.substring(0, 2);
@@ -272,7 +274,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
   */
-
   // Function to populate the sidebar with annotations
   function updateSidebar(annotations) {
     annotations.sort(
@@ -386,33 +387,35 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Function to generate a unique selector for an element
   function generateSelector(context) {
-    console.log("context", context);
-    let index, pathSelector, localName;
+    var pathSelector = finder(context);
+    console.log(pathSelector);
+    // console.log("context", context);
+    // let index, pathSelector, localName;
 
-    if (context == "null") throw "not an dom reference";
-    // call getIndex function
-    index = getIndex(context);
+    // if (context == "null") throw "not an dom reference";
+    // // call getIndex function
+    // index = getIndex(context);
 
-    while (context.tagName) {
-      // selector path
+    // while (context.tagName) {
+    //   // selector path
 
-      const className = context.className;
-      const idName = context.id;
+    //   const className = context.className;
+    //   const idName = context.id;
 
-      pathSelector =
-        context.localName +
-        (className
-          ? !className.includes("r6o-")
-            ? `.${className}`
-            : ""
-          : "") +
-        (idName ? `#${idName}` : "") +
-        (pathSelector ? ">" + pathSelector : "");
+    //   pathSelector =
+    //     context.localName +
+    //     (className
+    //       ? !className.includes("r6o-")
+    //         ? `.${className}`
+    //         : ""
+    //       : "") +
+    //     (idName ? `#${idName}` : "") +
+    //     (pathSelector ? ">" + pathSelector : "");
 
-      context = context.parentNode;
-    }
-    // selector path for nth of type
-    pathSelector = pathSelector + `:nth-of-type(${index})`;
+    //   context = context.parentNode;
+    // }
+    // // selector path for nth of type
+    // pathSelector = pathSelector + `:nth-of-type(${index})`;
     return pathSelector;
   }
 
@@ -472,7 +475,7 @@ document.addEventListener("DOMContentLoaded", function () {
       );
       console.log(annotation.id, " >> ", elements.length);
       if (elements.length > 1) {
-        distance = 1000000000;
+        var distance = 1000000000;
         var similarElement = null;
         elements.forEach((element) => {
           //uniqueSelector = generateSelector(element.parentNode);
@@ -485,7 +488,7 @@ document.addEventListener("DOMContentLoaded", function () {
           console.log("source content", annotation.target.selector[0].exact);
           console.log("target content", element.textContent);
           if (element.textContent) {
-            elementDistance = levenshteinDistance(
+            var elementDistance = levenshteinDistance(
               annotation.target.selector[0].exact,
               element.textContent
             );
@@ -537,6 +540,7 @@ document.addEventListener("DOMContentLoaded", function () {
       event.preventDefault();
       var clickedElement = event.target; // Get the clicked element
       var parentElement = clickedElement.parentNode;
+      console.log("before unique selector");
       uniqueSelector = generateSelector(parentElement);
 
       var selection = window.getSelection();
