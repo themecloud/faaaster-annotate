@@ -154,7 +154,7 @@ document.addEventListener("DOMContentLoaded", function () {
     var sidebar = document.createElement("div");
 
     sidebar.innerHTML +=
-      "<div id='sidebar-header'><div id='sidebar-title'><h2>Annotations</h2></div><div id='sidebar-help'><h4>Sélectionnez du texte pour ajouter un commentaire.<br>Cliquez sur un commentaire ci dessous pour le localiser dans la page.</h4></div></div><ul id='sidebar-annotations'></ul><div id='annotate-mode'><span class='mySwitchText'>Naviguer</span><input type='checkbox' id='mySwitch' /><label for='mySwitch' id='mySwitchLabel'>Annotate</label><span class='mySwitchText' style='text-align:right'>Annoter</span></div><div id='anno-minimize'><svg stroke='currentColor' fill='currentColor' stroke-width='0' viewBox='0 0 256 512' class='jss590' height='1em' width='1em' xmlns='http://www.w3.org/2000/svg'><path d='M224.3 273l-136 136c-9.4 9.4-24.6 9.4-33.9 0l-22.6-22.6c-9.4-9.4-9.4-24.6 0-33.9l96.4-96.4-96.4-96.4c-9.4-9.4-9.4-24.6 0-33.9L54.3 103c9.4-9.4 24.6-9.4 33.9 0l136 136c9.5 9.4 9.5 24.6.1 34z'></path></svg></div>";
+      "<div id='sidebar-header'><div id='sidebar-title'><h2>Annotations</h2></div><div id='sidebar-help'><h4>Sélectionnez du texte pour ajouter un commentaire.<br>Cliquez sur un commentaire ci dessous pour le localiser dans la page.</h4><h4 class='anno-refresh'>Refresh</h4></div></div><ul id='sidebar-annotations'></ul><div id='annotate-mode'><span class='mySwitchText'>Naviguer</span><input type='checkbox' id='mySwitch' /><label for='mySwitch' id='mySwitchLabel'>Annotate</label><span class='mySwitchText' style='text-align:right'>Annoter</span></div><div id='anno-minimize'><svg stroke='currentColor' fill='currentColor' stroke-width='0' viewBox='0 0 256 512' class='jss590' height='1em' width='1em' xmlns='http://www.w3.org/2000/svg'><path d='M224.3 273l-136 136c-9.4 9.4-24.6 9.4-33.9 0l-22.6-22.6c-9.4-9.4-9.4-24.6 0-33.9l96.4-96.4-96.4-96.4c-9.4-9.4-9.4-24.6 0-33.9L54.3 103c9.4-9.4 24.6-9.4 33.9 0l136 136c9.5 9.4 9.5 24.6.1 34z'></path></svg></div>";
     sidebar.id = "annotationSidebar";
 
     // // Create a list inside the sidebar
@@ -229,6 +229,16 @@ document.addEventListener("DOMContentLoaded", function () {
     const args = { id: homeUrl + "/" + user, displayName: user };
     console.log("args", args);
     anno.setAuthInfo(args);
+
+    fetch("/wp-json/annotate/v1/annotations/?url=" + encodedPathName, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => console.log("Success:", data))
+      .catch((error) => console.error("Error:", error));
 
     // Load existing annotations
     anno
@@ -476,7 +486,10 @@ document.addEventListener("DOMContentLoaded", function () {
       console.log(annotation.id, " >> ", elements.length);
       var newElement = document.querySelector(annotation.selector);
       var elementOk = false;
+      console.log("NEW ELEMENT", newElement);
+      console.log("elementOk", elementOk);
       elements.forEach((element) => {
+        console.log("SAME ELEMENT");
         const parentElement = element.parentNode;
         if (parentElement !== newElement) {
           element.classList.remove("r6o-annotation");
@@ -649,7 +662,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   document.addEventListener("click", function (event) {
     //alert("click clickthrough", trigger(event.target));
-
+    if (event.target.classList.contains("anno-refresh")) {
+      console.log("GET ANNOS", anno.getAnnotations());
+    }
     if (!annotateMode) {
       return;
     }
@@ -729,6 +744,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
   anno.on("createAnnotation", function (annotation) {
     console.log("encodedPathName", encodedPathName);
+    console.log("annotation", annotation);
+    console.log("get annos", anno.getAnnotations());
     var commentsData = anno.getAnnotations();
     commentsData.sort((a, b) => {
       const dateA = new Date(a.body[0].created);
