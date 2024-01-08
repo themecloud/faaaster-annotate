@@ -1,8 +1,8 @@
 /* Define the font face */
 @font-face {
     font-family: 'Inter';
-    src: url('https://efeefefefef.themecloud.dev//wp-content/plugins/annotate/fonts/inter/Inter-Regular.ttf') format('truetype'),
-         url('https://efeefefefef.themecloud.dev//wp-content/plugins/annotate/fonts/inter/Inter-Regular.ttf') format('truetype');
+    src: url('../fonts/inter/Inter-Regular.ttf') format('truetype'),
+         url('./fonts/inter/Inter-Regular.ttf') format('truetype');
     font-weight: 400;
     font-style: normal;
 }
@@ -16,7 +16,6 @@
     width: 300px;
     
     background-color: white;
-    border-left: 1px solid #ccc;
     overflow-y: auto;
    
     overflow-y:scroll;
@@ -35,6 +34,11 @@
 #annotationSidebar ul{
     list-style: none;
     margin: 0;
+    min-height: 100vh;
+    border-left: 1px solid #ccc;
+}
+.sidebar-annotation-container.anno-selected{
+    background: #f8fafd;
 }
 #sidebar-title{
     background-color:#00458b;
@@ -45,15 +49,17 @@
 #sidebar-help{
     padding:10px 20px;
     background-color: #f8fafd;
+    border-left: 1px solid #cccccc;
 }
 
 #sidebar-help h4{
     font-size:12px;
     font-family: Inter;
     margin:0;
+    color: #666;
 }
 #annotationSidebar h2{
-    font-size:20px;
+    font-size:18px;
     font-family: Inter;
     margin: 10px 0;
     position: relative;
@@ -62,20 +68,22 @@
 
 
 #annotate-mode{
-    position: absolute;
+    position: fixed;
     bottom: 0;
     z-index: 99;
-    width: calc(100% - 20px);
+    width: 270px;
     background: grey;
-    height: 60px;
+    height: 50px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 10px;
+    padding: 0 15px;
     background-color:#f8fafd;
+    border-left: 1px solid #ccc;
 }
 .mySwitchText{
     width:100px;
+    font-size:14px;
 }
 
 
@@ -101,10 +109,11 @@
     display:flex;
     justify-content: center;
     align-items: center;
-    right: 300px;
+    right: 299px;
     top:calc(50% - 20px);
     color:#00458b;
     border: 1px solid #cccccc;
+    border-right: none;
     transition:right 0.3s ease;
     cursor:pointer;
 }
@@ -118,8 +127,8 @@
     /* Styling for the label to make it look like a switch */
     cursor: pointer;
     text-indent: -9999px;
-    width: 50px;
-    height: 25px;
+    width: 40px;
+    height: 19px;
     background: grey;
     display: block;
     border-radius: 100px;
@@ -132,10 +141,10 @@
     position: absolute;
     top: 2px;
     left: 2px;
-    width: 21px;
-    height: 21px;
+    width: 15px;
+    height: 15px;
     background: #fff;
-    border-radius: 90px;
+    border-radius: 15px;
     transition: 0.3s;
 }
 
@@ -158,11 +167,27 @@
     padding : 10px 0;
     border-bottom: 1px solid #ccc;
     cursor:pointer;
+    position:relative
 }
 .sidebar-annotation-meta{
     display:flex;
     justify-content: space-between;
     color:  #666;
+    font-size:12px;
+}
+.sidebar-annotation-index{ 
+    display:inline-block;
+    margin-right:5px;
+}
+.sidebar-annotation-index span{ 
+    background-color: #00458b;
+    display:flex;
+    width:15px;
+    height:15px;
+    justify-content: center;
+    align-items: center;
+    color:white;
+    border-radius:15px;
     font-size:12px;
 }
 .anno-comments-number{
@@ -174,6 +199,9 @@
     align-items: center;
     color:white;
     border-radius:15px;
+    position: absolute;
+    top: 10px;
+    right: 0;
 }
 /************** CURSOR **************/
 
@@ -187,12 +215,17 @@
     background-color: #3fd2c614;
     border:none; 
 }
+.r6o-annotation.anno-selected{
+    background-color:#3fd2c630;
+}
 .r6o-annotation:before{
-    content:"test";
+    content:var(--after-content);
     position:absolute;
-    top:-30px;
+    top:-40px;
     left:0;
-    display: inline-block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width:30px;
     height:30px;
     border-radius: 30px;
@@ -201,7 +234,35 @@
     font-family: Inter;
     font-size:12px;
     color:white;
+    transition:all 0.3s ease;
+    border:2px solid #00458b6e;
 }
 .r6o-annotation:hover:before{
     transform:scale(1.2);
+}
+.r6o-annotation.anno-selected:before{
+    transform:scale(1.2);
+    border:3px solid #00458b6e;
+}
+
+.r6o-widget.comment .r6o-lastmodified{
+    font-size:12px;
+    color:#666;
+    border:none;
+    margin: 0 10px 8px 6px;
+}
+.r6o-widget.comment .r6o-lastmodified *, .r6o-widget.comment .r6o-lastmodified, .r6o-widget.comment .r6o-lastmodified .r6o-lastmodified-at{
+    color:#666;
+} 
+.r6o-editable-text{
+    color:black;
+}
+.r6o-btn{
+    background-color: #00458b;
+}
+.r6o-editor .r6o-footer .r6o-btn.delete-annotation{
+    display:none;
+}
+.r6o-widget.comment .r6o-arrow-down{
+    display:none;
 }

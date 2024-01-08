@@ -11,9 +11,10 @@
 add_action('wp_enqueue_scripts', 'enqueue_recogito_scripts');
 
 function enqueue_recogito_scripts()
-{
+{   
+    error_log(isset($_COOKIE['annotate']) || (isset($_GET['annotate']) && $_GET['annotate'] === 'true' && isset($_GET['user'])));
     // Check if 'annotate' and 'user' query parameters are set and valid
-    if (isset($_COOKIE['annotate']) || (isset($_GET['annotate']) && $_GET['annotate'] === 'true' && isset($_GET['user']) && $_GET['user'] === 'laurent')) {
+    if (isset($_COOKIE['annotate']) || (isset($_GET['annotate']) && $_GET['annotate'] === 'true' && isset($_GET['user']))) {
         if (isset($_COOKIE['annotate'])){
             $cookie = true;
             $user = $_COOKIE['annotate'];
@@ -42,13 +43,15 @@ function enqueue_recogito_scripts()
     }
 }
 
+// Fetch annotations
+
 function fetch_annotations(WP_REST_Request $request)
 {
     $url = $request->get_param('url');
     // Include manager.php to access the constants
     include_once('/app/.include/manager.php');
     // Get existing annotations from the API
-    $api_url = 'https://local.faaaster.io/api/applications/' . APP_ID . '/instances/' . BRANCH . '/annotate?url='. $url;
+    $api_url = 'https://app.faaaster.io/api/applications/' . APP_ID . '/instances/' . BRANCH . '/annotate?url='. $url;
     error_log($api_url);
 
     // Define the request arguments
@@ -80,19 +83,7 @@ function fetch_annotations(WP_REST_Request $request)
     return rest_ensure_response(json_decode(wp_remote_retrieve_body($response), true));
 }
 
-add_action('rest_api_init', function () {
-    register_rest_route('annotate/v1', '/annotations/', array(
-        'methods' => 'GET',
-        'callback' => 'fetch_annotations',
-    ));
-});
-
-add_action('rest_api_init', function () {
-    register_rest_route('annotate/v1', '/proxy/', array(
-        'methods' => 'POST',
-        'callback' => 'handle_proxy_request',
-    ));
-});
+// Push annotations
 
 function handle_proxy_request(WP_REST_Request $request)
 {
@@ -101,7 +92,7 @@ function handle_proxy_request(WP_REST_Request $request)
     $data = $request->get_json_params();
 
     // The API URL you want to call
-    $api_url = 'https://local.faaaster.io/api/applications/' . APP_ID . '/instances/' . BRANCH . '/annotate';
+    $api_url = 'https://app.faaaster.io/api/applications/' . APP_ID . '/instances/' . BRANCH . '/annotate';
 
 
     // Define the request arguments
@@ -127,3 +118,19 @@ function handle_proxy_request(WP_REST_Request $request)
     // You may format the response as needed
     return rest_ensure_response(json_decode(wp_remote_retrieve_body($response), true));
 }
+
+// Define REST routes
+
+add_action('rest_api_init', function () {
+    register_rest_route('annotate/v1', '/annotations/', array(
+        'methods' => 'GET',
+        'callback' => 'fetch_annotations',
+    ));
+});
+
+add_action('rest_api_init', function () {
+    register_rest_route('annotate/v1', '/proxy/', array(
+        'methods' => 'POST',
+        'callback' => 'handle_proxy_request',
+    ));
+});
