@@ -1,5 +1,3 @@
-import { finder } from "@medv/finder";
-
 document.addEventListener("DOMContentLoaded", function () {
   // Access applicationId and instanceId from PHP
   var locale = appConfig.locale.substring(0, 2);
@@ -12,7 +10,6 @@ document.addEventListener("DOMContentLoaded", function () {
     "//" +
     window.location.host +
     window.location.pathname;
-  var encodedUrl = encodeURIComponent(url);
   var encodedPathName = (window.location.host + window.location.pathname)
     .replace(/\//g, "-")
     .replace(/\./g, "-");
@@ -46,7 +43,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // If the cookie is not found, return undefined or a default value
     return undefined;
   }
-  console.log("cookie annotateMode", getCookieValue("annotateMode"));
+  // console.log("cookie annotateMode", getCookieValue("annotateMode"));
   let annotateMode = getCookieValue("annotateMode") ?? true;
 
   // Set user cookie if not exists
@@ -75,7 +72,7 @@ document.addEventListener("DOMContentLoaded", function () {
     anno
       .loadAnnotations("/wp-json/annotate/v1/annotations/")
       .then(function (annotations) {
-        console.log("annotations loaded", annotations);
+        console.log("Annotations loaded", annotations);
       });
   });
 
@@ -83,21 +80,21 @@ document.addEventListener("DOMContentLoaded", function () {
   function toggleSidebar() {
     const element = document.getElementById("annotationSidebar");
     if (!element.classList.contains("sideBarHidden")) {
-      console.log("Close SideBar");
+      // console.log("Close SideBar");
       element.classList.add("sideBarHidden");
     } else {
-      console.log("Open SideBar");
+      // console.log("Open SideBar");
       element.classList.remove("sideBarHidden");
     }
   }
 
   // Function to check if an element should trigger anno
   function trigger(element) {
-    console.log("anno", anno);
+    //console.log("anno", anno);
     if (!anno) {
       return false;
     }
-    console.log("trigger element", element);
+    //console.log("trigger element", element);
     if (document.querySelector(".r6o-editor")) {
       annotateblock = true;
     } else {
@@ -109,14 +106,16 @@ document.addEventListener("DOMContentLoaded", function () {
         hasTextChildren = true;
       }
     }
-    console.log("hasTextChildren", hasTextChildren);
-    console.log(
-      "SIDEBAR CLICK",
-      element.closest("#annotationSidebar") !== null
-    );
+    // WIP
+    //hasTextChildren = true;
+    // console.log("hasTextChildren", hasTextChildren);
+    // console.log(
+    //   "SIDEBAR CLICK",
+    //   element.closest("#annotationSidebar") !== null
+    // );
     const textEvent = element.nodeType === Node.TEXT_NODE || hasTextChildren;
-    console.log(" trigger textEvent", textEvent);
-    console.log("trigger annotateblock", annotateblock);
+    // console.log(" trigger textEvent", textEvent);
+    // console.log("trigger annotateblock", annotateblock);
 
     const triggerAnno =
       element.closest(".r6o-editor") !== null
@@ -145,7 +144,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // console.log("triggerAnno", triggerAnno);
     // console.log("clickThrough", clickThrough);
-    console.log("trigger", triggerAnno);
+    // console.log("trigger", triggerAnno);
     return [triggerAnno, clickThrough];
   }
 
@@ -175,12 +174,11 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     mySwitch.addEventListener("change", function () {
-      console.log("test switch", this.checked);
+      // console.log("test switch", this.checked);
       // Update the global variable based on the checkbox state
       annotateMode = this.checked;
-      console.log("annotateMode state is now:", annotateMode);
+      console.log("AnnotateMode state is now:", annotateMode);
       if (annotateMode == false) {
-        console.log("DESTROY ANNO");
         // Select all elements with the class 'r6o-annotation'
         const elements = document.querySelectorAll(".r6o-annotation");
 
@@ -208,12 +206,13 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  function initAnno() {
-    console.log("INITIALIZE ANNO");
+  async function initAnno() {
+    // console.log("INITIALIZE ANNO");
     // Initialize recogito.js
     anno = Recogito.init({
       content: document.getElementById("myCustomId"),
       locale: locale,
+      allowEmpty: true,
       widgets: [
         { widget: "COMMENT" },
         {
@@ -227,17 +226,19 @@ document.addEventListener("DOMContentLoaded", function () {
     // Initialize user
     var homeUrl = window.location.protocol + "//" + window.location.host;
     const args = { id: homeUrl + "/" + user, displayName: user };
-    console.log("args", args);
+    // console.log("args", args);
     anno.setAuthInfo(args);
 
-    fetch("/wp-json/annotate/v1/annotations/?url=" + encodedPathName, {
+    await fetch("/wp-json/annotate/v1/annotations/?url=" + encodedPathName, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
       },
     })
       .then((response) => response.json())
-      .then((data) => console.log("Success:", data))
+      .then((data) => {
+        console.log("Success:", data);
+      })
       .catch((error) => console.error("Error:", error));
 
     // Load existing annotations
@@ -246,14 +247,14 @@ document.addEventListener("DOMContentLoaded", function () {
         "/wp-json/annotate/v1/annotations?url=" + encodedPathName
       )
       .then(function (annotations) {
-        console.log("annotations loaded", annotations);
+        console.log("Annotations loaded", annotations);
         updateSidebar(annotations);
         optimizeAnnotations(annotations);
         setupClickListeners();
         // Set annotateMode cookie if not exists
-        console.log("change switch", getCookieValue("annotateMode"));
+        // console.log("change switch", getCookieValue("annotateMode"));
         if (getCookieValue("annotateMode") == "false") {
-          console.log("switch false");
+          // console.log("switch false");
           const mySwitch = document.getElementById("mySwitch");
           mySwitch.checked = false;
           // Dispatch the `change` event
@@ -268,22 +269,21 @@ document.addEventListener("DOMContentLoaded", function () {
   createSidebar();
   initAnno();
   // Manage custom cursor
-  /*
+
   document.addEventListener("mouseover", function (event) {
     // Check if the target should be triggered
-    console.log("cursor trigger", trigger(event.target)[0]);
+    // console.log("cursor trigger", trigger(event.target)[0]);
     if (!annotateMode) {
       return;
     }
     if (trigger(event.target)[0]) {
-      console.log("");
       event.target.classList.add("faaaster-annotate");
     } else {
       // Remove the class if not hovering over text
       event.target.classList.remove("faaaster-annotate");
     }
   });
-  */
+
   // Function to populate the sidebar with annotations
   function updateSidebar(annotations) {
     annotations.sort(
@@ -294,7 +294,7 @@ document.addEventListener("DOMContentLoaded", function () {
     list.innerHTML = ""; // Clear existing list items
 
     annotations.forEach((annotation) => {
-      console.log("anno", annotation);
+      // console.log("anno", annotation);
       const modified = annotation.body[0].modified;
       const modifiedDate = new Date(modified);
       const prettyModified = modifiedDate.toLocaleString(locale);
@@ -333,7 +333,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   // Function to scroll and highlight selected annotation
   function setupClickListeners() {
-    console.log("listen clicks");
+    // console.log("listen clicks");
     var sidebarAnnotations = document
       .getElementById("sidebar-annotations")
       .getElementsByTagName("li");
@@ -341,16 +341,16 @@ document.addEventListener("DOMContentLoaded", function () {
       item.addEventListener("click", function (event) {
         const closestLi = event.target.closest("li");
         closestLi.classList.add("anno-selected");
-        console.log(">>>> CLICK item", item);
+        // console.log(">>>> CLICK item", item);
         scrollToAndHighlight(item.dataset.annotationId).then(() => {
-          console.log("item.dataset.annotationId", item.dataset.annotationId);
+          // console.log("item.dataset.annotationId", item.dataset.annotationId);
           const element = document.querySelector(
             '.r6o-annotation[data-id="' + item.dataset.annotationId + '"]'
           );
 
           // Check if the element exists, then simulate a click
           if (element) {
-            console.log(">>>>>>>>>>>>> Element clicked", element);
+            // console.log(">>>>>>>>>>>>> Element clicked", element);
             element.click();
             var mouseupEvent = new MouseEvent("mouseup", {
               isTrusted: true,
@@ -361,9 +361,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
               // Add more event properties if needed
             });
-            element.dispatchEvent(mouseupEvent);
+            // element.dispatchEvent(mouseupEvent);
           } else {
-            console.log(">>>>>>>>> Element not found");
+            // console.log(">>>>>>>>> Element not found");
           }
         });
       });
@@ -379,54 +379,20 @@ document.addEventListener("DOMContentLoaded", function () {
       var pageAnnotation = document.querySelector(
         ".r6o-annotation[data-id='" + annotationId + "'"
       ); // Get the corresponding page annotation
-      console.log("pageAnnotation", pageAnnotation);
+      // console.log("pageAnnotation", pageAnnotation);
       if (pageAnnotation) {
-        console.log(">>>>>>>> SCROLL <<<<<<<<<");
+        // console.log(">>>>>>>> SCROLL <<<<<<<<<");
         pageAnnotation.scrollIntoView({ behavior: "smooth", block: "center" }); // Scroll to the annotation
 
         setTimeout(() => {
           pageAnnotation.classList.add("anno-selected");
           resolve();
         }, 1000); // Duration of highlight in milliseconds
-        console.log(">>>> RESOLVE <<<<<");
+        // console.log(">>>> RESOLVE <<<<<");
       } else {
         reject("Annotation not found"); // Reject the promise if the element is not found
       }
     });
-  }
-
-  // Function to generate a unique selector for an element
-  function generateSelector(context) {
-    var pathSelector = finder(context);
-    console.log(pathSelector);
-    // console.log("context", context);
-    // let index, pathSelector, localName;
-
-    // if (context == "null") throw "not an dom reference";
-    // // call getIndex function
-    // index = getIndex(context);
-
-    // while (context.tagName) {
-    //   // selector path
-
-    //   const className = context.className;
-    //   const idName = context.id;
-
-    //   pathSelector =
-    //     context.localName +
-    //     (className
-    //       ? !className.includes("r6o-")
-    //         ? `.${className}`
-    //         : ""
-    //       : "") +
-    //     (idName ? `#${idName}` : "") +
-    //     (pathSelector ? ">" + pathSelector : "");
-
-    //   context = context.parentNode;
-    // }
-    // // selector path for nth of type
-    // pathSelector = pathSelector + `:nth-of-type(${index})`;
-    return pathSelector;
   }
 
   // Function to find the most similar string
@@ -459,23 +425,6 @@ document.addEventListener("DOMContentLoaded", function () {
     return matrix[b.length][a.length];
   }
 
-  // get index for nth of type element
-  function getIndex(node) {
-    let i = 1;
-    let tagName = node.tagName;
-
-    while (node.previousSibling) {
-      node = node.previousSibling;
-      if (
-        node.nodeType === 1 &&
-        tagName.toLowerCase() == node.tagName.toLowerCase()
-      ) {
-        i++;
-      }
-    }
-    return i;
-  }
-
   // Optimize annotations new
 
   function optimizeAnnotations(annotations) {
@@ -483,187 +432,81 @@ document.addEventListener("DOMContentLoaded", function () {
       var elements = document.querySelectorAll(
         "[data-id='" + annotation.id + "'"
       );
-      console.log(annotation.id, " >> ", elements.length);
+      // console.log(annotation.id, " >> ", elements.length);
       var newElement = document.querySelector(annotation.selector);
       var elementOk = false;
-      console.log("NEW ELEMENT", newElement);
-      console.log("elementOk", elementOk);
+      // console.log("NEW ELEMENT", newElement);
+      // console.log("elementOk", elementOk);
       elements.forEach((element) => {
-        console.log("SAME ELEMENT");
-        const parentElement = element.parentNode;
-        if (parentElement !== newElement) {
-          element.classList.remove("r6o-annotation");
-          element.setAttribute("data-id", "");
-        } else {
-          element.style.setProperty(
-            "--after-content",
-            '"' + annotation.index + '"'
-          );
-          elementOk = true;
-        }
-      });
-      if (!elementOk) {
-        const spanElement = document.createElement("span");
-        spanElement.className = "r6o-annotation";
-        spanElement.setAttribute("data-id", annotation.id);
-        spanElement.style.setProperty(
+        element.style.setProperty(
           "--after-content",
           '"' + annotation.index + '"'
         );
-        // Step 3: Move all content of the target element into the <span>
-        // This is done by appending the target's child nodes to the span
-        while (newElement.firstChild) {
-          spanElement.appendChild(newElement.firstChild);
-        }
-
-        // Step 4: Append the <span> back into the original element
-        newElement.appendChild(spanElement);
-        console.log("newElement", newElement);
-        //   newElement.classList.add("r6o-annotation");
-        //   newElement.setAttribute("data-id", annotation.id);
-      }
+      });
     });
   }
 
-  // Optimize annotations old
-  /*
-  function optimizeAnnotations(annotations) {
-    annotations.forEach((annotation) => {
-      var elements = document.querySelectorAll(
-        "[data-id='" + annotation.id + "'"
-      );
-      console.log(annotation.id, " >> ", elements.length);
-      if (elements.length > 1) {
-        var distance = 1000000000;
-        var similarElement = null;
-        elements.forEach((element) => {
-          //uniqueSelector = generateSelector(element.parentNode);
-          console.log("elemenyt", element);
-          element.style.setProperty(
-            "--after-content",
-            '"' + annotation.index + '"'
-          );
-
-          console.log("source content", annotation.target.selector[0].exact);
-          console.log("target content", element.textContent);
-          if (element.textContent) {
-            var elementDistance = levenshteinDistance(
-              annotation.target.selector[0].exact,
-              element.textContent
-            );
-            console.log("distance", distance);
-            if (elementDistance < distance) {
-              console.log("attribute similar");
-              distance = elementDistance;
-              similarElement = element;
-            }
-          }
-          //   if (uniqueSelector != annotation.selector) {
-          //     // remove class r6o-annotation from element
-          //     // element.classList.remove("r6o-annotation");
-          //   } else {
-          //     // remove class r6o-annotation from element
-          //     //element.classList.remove("r6o-annotation");
-          //     // add class r6o-annotation to parent element
-          //     element.parentNode.classList.add("r6o-annotation");
-          //     element.parentNode.setAttribute("data-id", annotation.id);
-          //   }
-
-          element.classList.remove("r6o-annotation");
-        });
-        console.log(annotation.id, " >> ", similarElement);
-        // similarElement.parentNode.classList.add("r6o-annotation");
-        // similarElement.parentNode.setAttribute("data-id", annotation.id);
-        similarElement.classList.add("r6o-annotation");
-        // similarElement.parentNode.setAttribute("data-id", annotation.id);
-      } else {
-        // element.classList.remove("r6o-annotation");
-        // element.parentNode.classList.add("r6o-annotation");
-        // element.parentNode.setAttribute("data-id", annotation.id);
+  document.addEventListener(
+    "mousedown",
+    function (event) {
+      // console.log("mouseDown trigger", trigger(event.target)[0]);
+      if (!annotateMode) {
+        event.stopPropagation();
+        return;
       }
-    });
-  }
-*/
-  var uniqueSelector = null;
-  // Store selected dom path
+      if (trigger(event.target)[0] == true) {
+        // console.log("mouseDown >> TRIGGER");
+        event.stopPropagation();
+        event.preventDefault();
+        var clickedElement = event.target; // Get the clicked element
 
-  document.addEventListener("mousedown", function (event) {
-    console.log("mouseDown trigger", trigger(event.target)[0]);
-    if (!annotateMode) {
-      event.stopPropagation();
-      return;
-    }
-    if (trigger(event.target)[0] == true) {
-      console.log("mouseDown >> TRIGGER");
-      event.stopPropagation();
-      event.preventDefault();
-      var clickedElement = event.target; // Get the clicked element
-      console.log("before unique selector");
-      uniqueSelector = generateSelector(clickedElement);
+        var selection = document.getSelection();
 
-      var selection = window.getSelection();
-      //if(!selection){
-
-      console.log("clickedElement", clickedElement);
-      var range = document.createRange();
-      range.selectNodeContents(clickedElement);
-      console.log("range", range);
-      selection.removeAllRanges();
-      selection.addRange(range);
-    }
-  });
+        // console.log("clickedElement", clickedElement);
+        selection.removeAllRanges();
+        var range = document.createRange();
+        range.selectNodeContents(clickedElement);
+        selection.addRange(range);
+        const clonedContents = range.cloneContents();
+        const tempDiv = document.createElement("div");
+        tempDiv.appendChild(clonedContents);
+        event.stopPropagation();
+      }
+    },
+    true
+  );
   document.addEventListener(
     "mouseup",
     function (event) {
-      console.log(">>>> MOUSE UP FORCE", event.target);
+      // console.log(">>>> MOUSE UP FORCE", event.target);
       if (!annotateMode) {
         event.stopPropagation();
         return;
       }
       if (event.target.classList.contains("sidebar-annotation-container")) {
-        console.log("STOP PROPAGATRE CONTAINER");
+        // console.log("STOP PROPAGATRE CONTAINER");
         event.stopPropagation();
       }
     },
     true
   );
   document.addEventListener("mouseup", function (event) {
-    console.log(">>>> MOUSE UP", event.target);
+    // console.log(">>>> MOUSE UP", event.target);
     if (!annotateMode) {
       event.stopPropagation();
       return;
     }
 
     if (trigger(event.target)[0] == true) {
-      console.log(">>>>> STOP PROPAGATION MOUSE UP");
+      // console.log(">>>>> STOP PROPAGATION MOUSE UP");
       event.stopPropagation();
     }
-    // console.log("event", event);
-    // var clickedElement = event.target;
-    // var range = document.createRange();
-    // range.selectNode(clickedElement);
-    // selection.removeAllRanges();
-    // selection.addRange(range);
-    // var selectedElement = document.querySelector('.r6o-selection');
-    // if(selectedElement){
-    //     parentElement = selectedElement.parentNode;
-    //     parentElement.classList.add('r6o-selection');
-    //     uniqueSelector = generateSelector(parentElement);
-    //     console.log("uniqueSelector", uniqueSelector);
-    //}else{
-    // var selection = window.getSelection();
-    // var range = document.createRange();
-    // console.log("selection", selection);
-    // range.selectNode(this);
-    // console.log("range", range);
-    // // selection.removeAllRanges();                 // Clear any existing selections
-    // selection.addRange(range);                   // Add the new range
   });
 
   document.addEventListener("click", function (event) {
     //alert("click clickthrough", trigger(event.target));
     if (event.target.classList.contains("anno-refresh")) {
-      console.log("GET ANNOS", anno.getAnnotations());
+      // console.log("GET ANNOS", anno.getAnnotations());
     }
     if (!annotateMode) {
       return;
@@ -673,7 +516,7 @@ document.addEventListener("DOMContentLoaded", function () {
       !event.target.classList.contains("r6o-annotation") &&
       !event.target.classList.contains("sidebar-annotation-container")
     ) {
-      console.log("UNSELECT");
+      // console.log("UNSELECT");
       var editors = document.querySelectorAll(".r6o-annotation");
       editors.forEach((element) => {
         element.classList.remove("anno-selected");
@@ -684,61 +527,27 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     }
     if (!trigger(event.target)[1]) {
-      console.log(">>>>> STOP DEFAULT PROPAGATION CKICKTHROUGH FALSE");
+      // console.log(">>>>> STOP DEFAULT PROPAGATION CKICKTHROUGH FALSE");
       event.preventDefault();
     }
     if (trigger(event.target)[0]) {
-      //     //event.stopPropagation();
-      console.log(">>>>> STOP DEFAULT PROPAGATION CLICK TRIGGER TRUE");
+      // event.stopPropagation();
+      // console.log(">>>>> STOP DEFAULT PROPAGATION CLICK TRIGGER TRUE");
       event.preventDefault();
-      //     if(! document.querySelector('.r6o-selection')){
-
-      //         var clickedElement = event.target; // Get the clicked element
-      //         var selection = window.getSelection();
-      //         var range = document.createRange();
-      //         range.selectNode(clickedElement);
-      //         selection.removeAllRanges();
-      //         selection.addRange(range);
-      //         // Select the target element where you want to dispatch the event
-      //         var targetElement = clickedElement; // Replace with your target element's ID
-      //         console.log("targetElement", targetElement);
-      //         parentElement = clickedElement.parentNode;
-      //         console.log("parentElement", parentElement);
-      //         uniqueSelector = generateSelector(parentElement);
-
-      //         // Create a new span element
-      //         const mySelection = document.createElement('span');
-      //         mySelection.className = 'r6o-selection';  // Set the class for the span
-
-      //         // Move the content of the clicked element into the span
-      //         while (targetElement.firstChild) {
-      //             mySelection.appendChild(targetElement.firstChild);
-      //         }
-
-      //         // Insert the span back into the clicked element
-      //         targetElement.appendChild(mySelection);
-
-      //         // Create a mouseup event
-      //         var mouseupEvent = new MouseEvent('mouseup', {
-      //             isTrusted: true,
-      //             bubbles: true,    // Indicates whether the event bubbles up through the DOM
-      //             cancelable: true, // Indicates whether the event is cancelable
-      //             composer: true,
-      //             detail:1,
-
-      //             // Add more event properties if needed
-      //         });
-      //         console.log("mySelection",targetElement);
-      //         targetElement.dispatchEvent(mouseupEvent);
-      //         container = targetElement.parentNode;
-      //         console.log("container", container);
-      //         container.classList.remove('r6o-selection');
-
-      //     }
-
-      //     // Dispatch the event on the target element
     }
   });
+  function clearSelections() {
+    const spans = Array.prototype.slice.call(
+      document.querySelectorAll(".r6o-selection")
+    );
+    if (spans) {
+      spans.forEach((span) => {
+        const parent = span.parentNode;
+        parent.insertBefore(document.createTextNode(span.textContent), span);
+        parent.removeChild(span);
+      });
+    }
+  }
 
   // Optimize and store annotations
 
@@ -755,14 +564,14 @@ document.addEventListener("DOMContentLoaded", function () {
     commentsData.forEach((object, index) => {
       object.index = index;
     });
-    console.log("commentsData", commentsData);
+    // console.log("commentsData", commentsData);
     // find the annotation in the array with the id
-    var index = commentsData.findIndex((x) => x.id === annotation.id);
-    console.log("index", index, "id", annotation.id);
-    // update the annotation
-    commentsData[index].url = encodedPathName;
-    console.log("uniqueSelector", uniqueSelector);
-    commentsData[index].selector = uniqueSelector;
+    // var index = commentsData.findIndex((x) => x.id === annotation.id);
+    // console.log("index", index, "id", annotation.id);
+    // // update the annotation
+    // // commentsData[index].url = encodedPathName;
+    // // console.log("uniqueSelector", uniqueSelector);
+    // // commentsData[index].selector = uniqueSelector;
     updateSidebar(commentsData);
     optimizeAnnotations(commentsData);
     setupClickListeners();
@@ -779,6 +588,7 @@ document.addEventListener("DOMContentLoaded", function () {
       .catch((error) => console.error("Error:", error));
 
     console.log("Annotation created:", annotation);
+    clearSelections();
   });
 
   anno.on("updateAnnotation", function (annotation) {
@@ -792,14 +602,15 @@ document.addEventListener("DOMContentLoaded", function () {
     commentsData.forEach((object, index) => {
       object.index = index;
     });
-    console.log("commentsData", commentsData);
-    // find the annotation in the array with the id
-    var index = commentsData.findIndex((x) => x.id === annotation.id);
-    // update the annotation
-    commentsData[index].url = encodedPathName;
-    console.log("uniqueSelector", uniqueSelector);
-    commentsData[index].selector = uniqueSelector;
+    // console.log("commentsData", commentsData);
+    // // find the annotation in the array with the id
+    // var index = commentsData.findIndex((x) => x.id === annotation.id);
+    // // update the annotation
+    // commentsData[index].url = encodedPathName;
+    // console.log("uniqueSelector", uniqueSelector);
+    // commentsData[index].selector = uniqueSelector;
     updateSidebar(commentsData);
+
     optimizeAnnotations(commentsData);
     setupClickListeners();
     console.log("commentsData", commentsData);
@@ -815,6 +626,7 @@ document.addEventListener("DOMContentLoaded", function () {
       .catch((error) => console.error("Error:", error));
 
     console.log("Annotation updated:", annotation);
+    clearSelections();
   });
 
   // Additional event listeners as needed
