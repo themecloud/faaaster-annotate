@@ -1,19 +1,14 @@
 document.addEventListener("DOMContentLoaded", function () {
   // Access applicationId and instanceId from PHP
-  var locale = appConfig.locale.substring(0, 2);
+  var locale = appConfig.locale.substring(3, 5);
   var user = appConfig.user;
   var userCookie = appConfig.cookie;
   var anno = null;
   let annotateblock = false;
-  var url =
-    window.location.protocol +
-    "//" +
-    window.location.host +
-    window.location.pathname;
+  let loading = true;
   var encodedPathName = (window.location.host + window.location.pathname)
     .replace(/\//g, "-")
     .replace(/\./g, "-");
-
   // Function to set cookie
   function setCookie(name, value, days) {
     var expires = "";
@@ -24,6 +19,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     document.cookie = name + "=" + (value || "") + expires + "; path=/";
   }
+ 
 
   // Function to get cookie
   function getCookieValue(name) {
@@ -44,8 +40,9 @@ document.addEventListener("DOMContentLoaded", function () {
     return undefined;
   }
   // console.log("cookie annotateMode", getCookieValue("annotateMode"));
-  let annotateMode = getCookieValue("annotateMode") ?? true;
-
+  let annotateMode = getCookieValue("annotateMode") == "true" ? true : false;
+  
+  console.log("annotateMode", annotateMode, typeof annotateMode);
   // Set user cookie if not exists
   if (!userCookie) {
     setCookie("annotate", user, 7);
@@ -57,25 +54,33 @@ document.addEventListener("DOMContentLoaded", function () {
   /******* FLOATING BUTTON ******/
 
   // Add interface
-  var saveButton = document.createElement("button");
+  var saveButton = document.createElement("div");
   saveButton.id = "saveCommentButton";
   saveButton.textContent = "Save Comment";
 
+
+  // Add ActionBar
+  var actionBar = document.createElement("div");
+  actionBar.id = "actionBar";
+  //const actionBarContent = '<div id="annotateToggle" class="actionBarButton"></div><div id="navigateToggle" class="actionBarButton"></div><div class="actionBarButton" id="shareModal"></div>';
+  const actionBarContent = '<div id="annotateToggle" class="actionBarButton"></div><div id="navigateToggle" class="actionBarButton"></div>';
+  actionBar.innerHTML += actionBarContent;
+  
   // Identify the target element where the button will be placed
   var targetElement = document.body; // Replace with your target element's ID
 
   // Append the button to the target element
   targetElement.appendChild(saveButton);
+  targetElement.appendChild(actionBar);
 
-  // Add click event listener to the button
-  saveButton.addEventListener("click", function () {
-    anno
-      .loadAnnotations("/wp-json/annotate/v1/annotations/")
-      .then(function (annotations) {
-        console.log("Annotations loaded", annotations);
-      });
-  });
-
+  // Initialize actionBar
+  var annotateToggle = document.getElementById("annotateToggle");
+  var navigateToggle = document.getElementById("navigateToggle");
+  if(annotateMode){
+    annotateToggle.classList.add("selected");
+  }else{
+    navigateToggle.classList.add("selected");
+  }
   // Function to hide sidebar
   function toggleSidebar() {
     const element = document.getElementById("annotationSidebar");
@@ -124,6 +129,8 @@ document.addEventListener("DOMContentLoaded", function () {
         ? false
         : element.closest("#wpadminbar") !== null
         ? false
+        : element.closest("#actionBar") !== null
+        ? false
         : annotateblock
         ? false
         : textEvent
@@ -136,14 +143,16 @@ document.addEventListener("DOMContentLoaded", function () {
         ? true
         : element.closest("#wpadminbar") !== null
         ? true
+        : element.closest("#actionBar") !== null
+        ? true
         : annotateblock
         ? false
         : !annotateMode
         ? true
         : false;
 
-    // console.log("triggerAnno", triggerAnno);
-    // console.log("clickThrough", clickThrough);
+    console.log("triggerAnno", triggerAnno);
+    console.log("clickThrough", clickThrough);
     // console.log("trigger", triggerAnno);
     return [triggerAnno, clickThrough];
   }
@@ -153,7 +162,7 @@ document.addEventListener("DOMContentLoaded", function () {
     var sidebar = document.createElement("div");
 
     sidebar.innerHTML +=
-      "<div id='sidebar-header'><div id='sidebar-title'><h2>Annotations</h2></div><div id='sidebar-help'><h4>Sélectionnez du texte pour ajouter un commentaire.<br>Cliquez sur un commentaire ci dessous pour le localiser dans la page.</h4><h4 class='anno-refresh'>Refresh</h4></div></div><ul id='sidebar-annotations'></ul><div id='annotate-mode'><span class='mySwitchText'>Naviguer</span><input type='checkbox' id='mySwitch' /><label for='mySwitch' id='mySwitchLabel'>Annotate</label><span class='mySwitchText' style='text-align:right'>Annoter</span></div><div id='anno-minimize'><svg stroke='currentColor' fill='currentColor' stroke-width='0' viewBox='0 0 256 512' class='jss590' height='1em' width='1em' xmlns='http://www.w3.org/2000/svg'><path d='M224.3 273l-136 136c-9.4 9.4-24.6 9.4-33.9 0l-22.6-22.6c-9.4-9.4-9.4-24.6 0-33.9l96.4-96.4-96.4-96.4c-9.4-9.4-9.4-24.6 0-33.9L54.3 103c9.4-9.4 24.6-9.4 33.9 0l136 136c9.5 9.4 9.5 24.6.1 34z'></path></svg></div>";
+      "<div id='sidebar-header'><div id='sidebar-title'><h2>Annotations</h2></div><div id='sidebar-help'><h4>Sélectionnez du texte pour ajouter un commentaire.<br>Cliquez sur un commentaire ci dessous pour le localiser dans la page.</h4></div></div><ul id='sidebar-annotations'></ul><div id='annotate-mode'><span class='mySwitchText'>Naviguer</span><input type='checkbox' id='mySwitch' /><label for='mySwitch' id='mySwitchLabel'>Annotate</label><span class='mySwitchText'>Annoter</span></div><div id='anno-minimize'><svg stroke='currentColor' fill='currentColor' stroke-width='0' viewBox='0 0 256 512' class='jss590' height='1em' width='1em' xmlns='http://www.w3.org/2000/svg'><path d='M224.3 273l-136 136c-9.4 9.4-24.6 9.4-33.9 0l-22.6-22.6c-9.4-9.4-9.4-24.6 0-33.9l96.4-96.4-96.4-96.4c-9.4-9.4-9.4-24.6 0-33.9L54.3 103c9.4-9.4 24.6-9.4 33.9 0l136 136c9.5 9.4 9.5 24.6.1 34z'></path></svg></div>";
     sidebar.id = "annotationSidebar";
 
     // // Create a list inside the sidebar
@@ -167,11 +176,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Attach a change event listener to the checkbox
     const mySwitch = document.getElementById("mySwitch");
-    mySwitch.checked = true;
     // Check if adsmin bar
     if (document.getElementById("wpadminbar")) {
       sidebar.classList.add("annotationAdmin");
     }
+    mySwitch.checked = annotateMode;
+
 
     mySwitch.addEventListener("change", function () {
       // console.log("test switch", this.checked);
@@ -186,7 +196,10 @@ document.addEventListener("DOMContentLoaded", function () {
         elements.forEach(function (element) {
           element.classList.replace("r6o-annotation", "r6o-annotation-hidden");
         });
+        
         document.cookie = "annotateMode=false; path=/";
+        annotateToggle.classList.remove("selected");
+        navigateToggle.classList.add("selected");
       } else {
         // Select all elements with the class 'r6o-annotation'
         const elements = document.querySelectorAll(".r6o-annotation-hidden");
@@ -196,6 +209,9 @@ document.addEventListener("DOMContentLoaded", function () {
           element.classList.replace("r6o-annotation-hidden", "r6o-annotation");
         });
         document.cookie = "annotateMode=true; path=/";
+        annotateToggle.classList.add("selected");
+        navigateToggle.classList.remove("selected");
+        
       }
     });
 
@@ -265,9 +281,94 @@ document.addEventListener("DOMContentLoaded", function () {
           mySwitch.dispatchEvent(changeEvent);
         }
       });
+      // Optimize and store annotations
+
+  anno.on("createAnnotation", function (annotation) {
+    console.log("encodedPathName", encodedPathName);
+    console.log("annotation", annotation);
+    console.log("get annos", anno.getAnnotations());
+    var commentsData = anno.getAnnotations();
+    commentsData.sort((a, b) => {
+      const dateA = new Date(a.body[0].created);
+      const dateB = new Date(b.body[0].created);
+      return dateA - dateB; // Ascending order
+    });
+    commentsData.forEach((object, index) => {
+      object.index = index;
+    });
+    // console.log("commentsData", commentsData);
+    // find the annotation in the array with the id
+    // var index = commentsData.findIndex((x) => x.id === annotation.id);
+    // console.log("index", index, "id", annotation.id);
+    // // update the annotation
+    // // commentsData[index].url = encodedPathName;
+    // // console.log("uniqueSelector", uniqueSelector);
+    // // commentsData[index].selector = uniqueSelector;
+    updateSidebar(commentsData);
+    optimizeAnnotations(commentsData);
+    setupClickListeners();
+    console.log("commentsData", commentsData);
+    fetch("/wp-json/annotate/v1/proxy/?url=" + encodedPathName, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(commentsData),
+    })
+      .then((response) => response.json())
+      .then((data) => console.log("Success:", data))
+      .catch((error) => console.error("Error:", error));
+
+    console.log("Annotation created:", annotation);
+    clearSelections();
+  });
+
+  anno.on("updateAnnotation", function (annotation) {
+    console.log("encodedPathName", encodedPathName);
+    var commentsData = anno.getAnnotations();
+    commentsData.sort((a, b) => {
+      const dateA = new Date(a.body[0].created);
+      const dateB = new Date(b.body[0].created);
+      return dateA - dateB; // Ascending order
+    });
+    commentsData.forEach((object, index) => {
+      object.index = index;
+    });
+    // console.log("commentsData", commentsData);
+    // // find the annotation in the array with the id
+    // var index = commentsData.findIndex((x) => x.id === annotation.id);
+    // // update the annotation
+    // commentsData[index].url = encodedPathName;
+    // console.log("uniqueSelector", uniqueSelector);
+    // commentsData[index].selector = uniqueSelector;
+    updateSidebar(commentsData);
+
+    optimizeAnnotations(commentsData);
+    setupClickListeners();
+    console.log("commentsData", commentsData);
+    fetch("/wp-json/annotate/v1/proxy/?url=" + encodedPathName, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(commentsData),
+    })
+      .then((response) => response.json())
+      .then((data) => console.log("Success:", data))
+      .catch((error) => console.error("Error:", error));
+
+    console.log("Annotation updated:", annotation);
+    clearSelections();
+  });
+      loading = false;
   }
   createSidebar();
   initAnno();
+  if(annotateMode == true){
+   
+  }else{
+    toggleSidebar();
+  }
   // Manage custom cursor
 
   document.addEventListener("mouseover", function (event) {
@@ -351,6 +452,7 @@ document.addEventListener("DOMContentLoaded", function () {
           // Check if the element exists, then simulate a click
           if (element) {
             // console.log(">>>>>>>>>>>>> Element clicked", element);
+            element.classList.add("anno-selected");
             element.click();
             var mouseupEvent = new MouseEvent("mouseup", {
               isTrusted: true,
@@ -361,7 +463,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
               // Add more event properties if needed
             });
-            // element.dispatchEvent(mouseupEvent);
+            element.dispatchEvent(mouseupEvent);
           } else {
             // console.log(">>>>>>>>> Element not found");
           }
@@ -432,7 +534,7 @@ document.addEventListener("DOMContentLoaded", function () {
       var elements = document.querySelectorAll(
         "[data-id='" + annotation.id + "'"
       );
-      // console.log(annotation.id, " >> ", elements.length);
+      console.log(annotation.id, " >> ", elements.length);
       var newElement = document.querySelector(annotation.selector);
       var elementOk = false;
       // console.log("NEW ELEMENT", newElement);
@@ -478,6 +580,9 @@ document.addEventListener("DOMContentLoaded", function () {
   document.addEventListener(
     "mouseup",
     function (event) {
+      if(event.target.closest("#actionBar")){
+        return;
+      }
       // console.log(">>>> MOUSE UP FORCE", event.target);
       if (!annotateMode) {
         event.stopPropagation();
@@ -491,7 +596,7 @@ document.addEventListener("DOMContentLoaded", function () {
     true
   );
   document.addEventListener("mouseup", function (event) {
-    // console.log(">>>> MOUSE UP", event.target);
+    console.log(">>>> MOUSE UP", event.target);
     if (!annotateMode) {
       event.stopPropagation();
       return;
@@ -505,6 +610,39 @@ document.addEventListener("DOMContentLoaded", function () {
 
   document.addEventListener("click", function (event) {
     //alert("click clickthrough", trigger(event.target));
+    if (event.target.id == "annotateToggle" && annotateMode == false) {
+      console.log("Annotate");
+      navigateToggle.classList.remove("selected");
+      event.target.classList.add("selected");
+      const newEvent = new MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+        view: window
+      });
+      mySwitch.dispatchEvent(newEvent);
+      const sideBAr = document.getElementById("annotationSidebar");
+        if (sideBAr.classList.contains("sideBarHidden")) {
+         console.log("Close SideBar");
+          sideBAr.classList.remove("sideBarHidden");
+        }  
+    } 
+    if (event.target.id == "navigateToggle" && annotateMode == true) {
+      console.log("Navigate");
+      annotateToggle.classList.remove("selected");
+      event.target.classList.add("selected");
+      const newEvent = new MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+        view: window
+      });
+             
+      mySwitch.dispatchEvent(newEvent);
+      const sideBAr = document.getElementById("annotationSidebar");
+        if (!sideBAr.classList.contains("sideBarHidden")) {
+          console.log("Close SideBar");
+          sideBAr.classList.add("sideBarHidden");
+        }   
+    } 
     if (event.target.classList.contains("anno-refresh")) {
       // console.log("GET ANNOS", anno.getAnnotations());
     }
@@ -549,85 +687,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // Optimize and store annotations
-
-  anno.on("createAnnotation", function (annotation) {
-    console.log("encodedPathName", encodedPathName);
-    console.log("annotation", annotation);
-    console.log("get annos", anno.getAnnotations());
-    var commentsData = anno.getAnnotations();
-    commentsData.sort((a, b) => {
-      const dateA = new Date(a.body[0].created);
-      const dateB = new Date(b.body[0].created);
-      return dateA - dateB; // Ascending order
-    });
-    commentsData.forEach((object, index) => {
-      object.index = index;
-    });
-    // console.log("commentsData", commentsData);
-    // find the annotation in the array with the id
-    // var index = commentsData.findIndex((x) => x.id === annotation.id);
-    // console.log("index", index, "id", annotation.id);
-    // // update the annotation
-    // // commentsData[index].url = encodedPathName;
-    // // console.log("uniqueSelector", uniqueSelector);
-    // // commentsData[index].selector = uniqueSelector;
-    updateSidebar(commentsData);
-    optimizeAnnotations(commentsData);
-    setupClickListeners();
-    console.log("commentsData", commentsData);
-    fetch("/wp-json/annotate/v1/proxy/?url=" + encodedPathName, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(commentsData),
-    })
-      .then((response) => response.json())
-      .then((data) => console.log("Success:", data))
-      .catch((error) => console.error("Error:", error));
-
-    console.log("Annotation created:", annotation);
-    clearSelections();
-  });
-
-  anno.on("updateAnnotation", function (annotation) {
-    console.log("encodedPathName", encodedPathName);
-    var commentsData = anno.getAnnotations();
-    commentsData.sort((a, b) => {
-      const dateA = new Date(a.body[0].created);
-      const dateB = new Date(b.body[0].created);
-      return dateA - dateB; // Ascending order
-    });
-    commentsData.forEach((object, index) => {
-      object.index = index;
-    });
-    // console.log("commentsData", commentsData);
-    // // find the annotation in the array with the id
-    // var index = commentsData.findIndex((x) => x.id === annotation.id);
-    // // update the annotation
-    // commentsData[index].url = encodedPathName;
-    // console.log("uniqueSelector", uniqueSelector);
-    // commentsData[index].selector = uniqueSelector;
-    updateSidebar(commentsData);
-
-    optimizeAnnotations(commentsData);
-    setupClickListeners();
-    console.log("commentsData", commentsData);
-    fetch("/wp-json/annotate/v1/proxy/?url=" + encodedPathName, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(commentsData),
-    })
-      .then((response) => response.json())
-      .then((data) => console.log("Success:", data))
-      .catch((error) => console.error("Error:", error));
-
-    console.log("Annotation updated:", annotation);
-    clearSelections();
-  });
+  
 
   // Additional event listeners as needed
 });

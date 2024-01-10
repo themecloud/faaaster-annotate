@@ -7,7 +7,54 @@
     font-style: normal;
 }
 
+/****** ActonBar ******/
+#actionBar{
+    background-color:#00458b;
+    display:flex;
+    justify-content:space-around;
+    border-radius:22px;
+    width:90px;
+    position:fixed;
+    bottom:10px;
+    left:50%;
+    margin-left:-60px;
+    padding:6px 5px;
+    z-index:999999;
+    box-shadow: 0px 8px 30px rgba(0, 0, 0, 0.25);
 
+}
+
+.actionBarButton{
+    width: 30px;
+    height:30px;
+    border-radius:25px;
+    background-color: #00458b;
+    border: 1px solid #4082c7;
+    padding:3px;
+    background-repeat:no-repeat;
+    background-size:60%;
+    background-position:center center;
+    cursor:pointer;
+    transition: all 0.3s ease;
+}
+.actionBarButton:hover{
+    border: 1px solid #3fd2c6;
+}
+.actionBarButton.selected{
+    background-color: #3fd2c6;
+    border: 1px solid #3fd2c6;
+}
+#annotateToggle{
+    background-image:url(../images/0472-bubbles.svg);
+}
+#navigateToggle{
+    
+    background-image:url(../images/0166-eye.svg);
+}
+#shareModal{
+   
+    background-image:url(../images/0801-share2.svg);
+}
 
 #annotationSidebar {
     position: fixed;
@@ -65,14 +112,39 @@
     margin: 10px 0;
     position: relative;
     display: inline-block;
+    padding-left:30px;
 }
+#annotationSidebar h2:before{
+    content:"";
+    position:absolute;
+    width:30px;
+    height:100%;
+    left:3px;
+    top:0;
+    background-image:url(../images/0472-bubbles.svg);
+    background-repeat: no-repeat;
+    background-size: 18px;
+    background-position: left center;
+}
+#annotationSidebar h2:after{
+    content: "beta";
+    position: absolute;
+    display: inline-block;
+    left: auto;
+    right: -45px;
+    background-color: #3fd2c6;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-size: 12px;
+}
+
 
 
 #annotate-mode{
     position: fixed;
     bottom: 0;
     z-index: 99;
-    width: 270px;
+    width: 300px;
     background: grey;
     height: 50px;
     display: flex;
@@ -85,6 +157,7 @@
 .mySwitchText{
     width:100px;
     font-size:14px;
+    text-align:center;
 }
 
 
@@ -161,7 +234,7 @@
 }
 
 #sidebar-annotations{
-    padding:20px;
+    padding:0 20px;
     
 }
 .sidebar-annotation{
@@ -222,13 +295,13 @@
 .r6o-annotation:before{
     content:var(--after-content);
     position:absolute;
-    top:-40px;
+    top:-32px;
     left:0;
     display: flex;
     align-items: center;
     justify-content: center;
-    width:30px;
-    height:30px;
+    width:28px;
+    height:28px;
     border-radius: 30px;
     background-color: #3fd2c6;
     z-index:99999;
@@ -236,7 +309,8 @@
     font-size:12px;
     color:white;
     transition:all 0.3s ease;
-    border:2px solid #00458b6e;
+    border:2px solid #2fa4a3;
+    letter-spacing: 0;
 }
 .r6o-annotation:hover:before{
     transform:scale(1.2);
@@ -250,7 +324,10 @@
     font-size:12px;
     color:#666;
     border:none;
-    margin: 0 10px 8px 6px;
+    margin: 0;
+}
+.r6o-widget.comment{
+    min-height:0;
 }
 .r6o-widget.comment .r6o-lastmodified *, .r6o-widget.comment .r6o-lastmodified, .r6o-widget.comment .r6o-lastmodified .r6o-lastmodified-at{
     color:#666;
@@ -261,9 +338,89 @@
 .r6o-btn{
     background-color: #00458b;
 }
+.r6o-editor, .r6o-editor .r6o-editor-inner, .r6o-widget.r6o-tag{
+    border-radius: 8px;
+    background-color: #f8f8f8;
+}
+.r6o-editor .r6o-editor-inner .r6o-widget:first-child{
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    background: #f8f8f8;
+    padding: 7px 7px 0 7px;
+}
 .r6o-editor .r6o-footer .r6o-btn.delete-annotation{
     display:none;
 }
 .r6o-widget.comment .r6o-arrow-down{
     display:none;
+} 
+.r6o-widget.comment .r6o-editable-text, .r6o-widget.comment .r6o-readonly-comment{
+    color:black;
+
+}
+.r6o-editor .r6o-arrow:after, .r6o-widget.comment .r6o-editable-text, .r6o-widget.comment .r6o-readonly-comment, .r6o-widget.comment{
+    background:#f8f8f8;
+}
+
+.r6o-editor .r6o-arrow:after{
+    content: "";
+    position: absolute;
+    top: 7px;
+    left: 5px;
+    width: 11px;
+    height: 11px;
+}
+.r6o-widget.comment.editable, .r6o-widget.comment.editable .r6o-editable-text{
+    background:white;
+}
+.r6o-btn {
+    border-radius: 5px;
+}
+
+.r6o-widget.r6o-tag ul.r6o-taglist li{
+    border-radius: 15px;
+    line-height: 150%;
+}
+.r6o-widget.r6o-tag ul.r6o-taglist li .r6o-label{
+    line-height: 12px;
+}
+.r6o-widget.r6o-tag ul.r6o-taglist li .r6o-delete-wrapper svg{
+    width:10px;
+    vertical-align: middle;
+}
+.r6o-widget.r6o-tag {
+    padding: 4px 6px;
+}
+.r6o-widget.r6o-tag .r6o-autocomplete input, .r6o-widget.r6o-tag .r6o-autocomplete li{
+    font-size:12px !important;
+}
+.r6o-widget.r6o-tag{
+    background-image:url(../images/0342-tag.svg);
+    background-repeat: no-repeat;
+    background-size: 20px;
+    background-position: left 12px center;
+    padding-left: 38px;
+
+}
+.r6o-widget.comment.editable{
+    position:relative;
+}
+.r6o-widget.comment.editable:before{
+    content:"";
+    position:absolute;
+    width:30px;
+    height:100%;
+    left:3px;
+    top:0;
+    background-image:url(../images/0471-bubble.svg);
+    background-repeat: no-repeat;
+    background-size: 18px;
+    background-position: left 12px center;
+
+}
+.r6o-widget.comment.editable textarea{
+    padding-left:42px;
+}
+.r6o-widget.r6o-tag ul.r6o-taglist li .r6o-delete-wrapper{
+    background-color: #00458b;
 }

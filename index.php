@@ -12,6 +12,24 @@ add_action('wp_enqueue_scripts', 'enqueue_recogito_scripts');
 
 function enqueue_recogito_scripts()
 {   
+
+    // Enqueue recogito.js
+    wp_enqueue_script('recogito-js', plugin_dir_url(__FILE__) . 'js/recogito.min.js', array(), '1.0.0', false);
+    wp_enqueue_style('recogito', plugin_dir_url(__FILE__) . 'css/recogito.min.css');
+    wp_enqueue_style('recogito-custom', plugin_dir_url(__FILE__) . 'css/custom-annotations.css');
+    // Include manager.php to access the constants
+    include_once('/app/.include/manager.php');
+    // Get the current WordPress locale
+    $locale = get_locale();
+    error_log($locale);
+    // Enqueue your custom JS file
+    wp_enqueue_script('custom-annotations-js', plugin_dir_url(__FILE__) . 'js/custom-annotations.js', array('recogito-js'), '1.0.0', false);
+    // Localize script to pass data from PHP to JavaScript
+    wp_localize_script('custom-annotations-js', 'appConfig', array(
+        'locale' => $locale,
+        'user' => $user,
+        'cookie' => $cookie,
+    ));
     error_log(isset($_COOKIE['annotate']) || (isset($_GET['annotate']) && $_GET['annotate'] === 'true' && isset($_GET['user'])));
     // Check if 'annotate' and 'user' query parameters are set and valid
     if (isset($_COOKIE['annotate']) || (isset($_GET['annotate']) && $_GET['annotate'] === 'true' && isset($_GET['user']))) {
@@ -21,25 +39,7 @@ function enqueue_recogito_scripts()
         } else {
             $cookie = false;
             $user = $_GET['user'];
-        }
-
-        // Enqueue recogito.js
-        wp_enqueue_script('recogito-js', plugin_dir_url(__FILE__) . 'js/recogito.min.js', array(), '1.0.0', false);
-        wp_enqueue_style('recogito', plugin_dir_url(__FILE__) . 'css/recogito.min.css');
-        wp_enqueue_style('recogito-custom', plugin_dir_url(__FILE__) . 'css/custom-annotations.css');
-        // Include manager.php to access the constants
-        include_once('/app/.include/manager.php');
-        // Get the current WordPress locale
-        $locale = get_locale();
-        error_log($locale);
-        // Enqueue your custom JS file
-        wp_enqueue_script('custom-annotations-js', plugin_dir_url(__FILE__) . 'js/custom-annotations.js', array('recogito-js'), '1.0.0', false);
-        // Localize script to pass data from PHP to JavaScript
-        wp_localize_script('custom-annotations-js', 'appConfig', array(
-            'locale' => $locale,
-            'user' => $user,
-            'cookie' => $cookie,
-        ));
+        } 
     }
 }
 
