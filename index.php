@@ -21,26 +21,38 @@ function enqueue_recogito_scripts()
     include_once('/app/.include/manager.php');
     // Get the current WordPress locale
     $locale = get_locale();
-    error_log($locale);
     // Enqueue your custom JS file
     wp_enqueue_script('custom-annotations-js', plugin_dir_url(__FILE__) . 'js/custom-annotations.js', array('recogito-js'), '1.0.0', false);
+    
+   // error_log(isset($_COOKIE['faaaster-annotate']) || (isset($_GET['annotate']) && $_GET['annotate'] === 'true' && isset($_GET['user'])));
+    
+    // Get the current user information
+    $current_user = wp_get_current_user();
+
+    // Check if a user is logged in
+    if ( $current_user->exists() ) {
+        // User is logged in
+        // Get username
+        $username = $current_user->user_login;
+
+        // Get email
+        $email = $current_user->user_email;
+
+       
+    } 
+    // Check if 'annotate' and 'user' query parameters are set and valid
+    if (isset($_GET['user']) && isset($_GET['annotate']) && isset($_GET['user'])) {
+            $username = $_GET['user'];
+            $email = $_GET['email']; 
+            $annotate = $_GET['annotate'];
+    }
     // Localize script to pass data from PHP to JavaScript
     wp_localize_script('custom-annotations-js', 'appConfig', array(
         'locale' => $locale,
-        'user' => $user,
-        'cookie' => $cookie,
+        'user' =>  $username,
+        'email' => $email,
+        'annotate' => $annotate
     ));
-    error_log(isset($_COOKIE['annotate']) || (isset($_GET['annotate']) && $_GET['annotate'] === 'true' && isset($_GET['user'])));
-    // Check if 'annotate' and 'user' query parameters are set and valid
-    if (isset($_COOKIE['annotate']) || (isset($_GET['annotate']) && $_GET['annotate'] === 'true' && isset($_GET['user']))) {
-        if (isset($_COOKIE['annotate'])){
-            $cookie = true;
-            $user = $_COOKIE['annotate'];
-        } else {
-            $cookie = false;
-            $user = $_GET['user'];
-        } 
-    }
 }
 
 // Fetch annotations
@@ -52,7 +64,6 @@ function fetch_annotations(WP_REST_Request $request)
     include_once('/app/.include/manager.php');
     // Get existing annotations from the API
     $api_url = 'https://app.faaaster.io/api/applications/' . APP_ID . '/instances/' . BRANCH . '/annotate?url='. $url;
-    error_log($api_url);
 
     // Define the request arguments
     $args = array(
@@ -69,7 +80,7 @@ function fetch_annotations(WP_REST_Request $request)
     if (is_wp_error($response)) {
         return new WP_Error('request_failed', 'API request failed', array('status' => 500));
     }
-    error_log(json_encode($response));
+    //error_log(json_encode($response));
     $annotations = json_decode(wp_remote_retrieve_body($response), true);
 
     // Make the API call
@@ -92,7 +103,7 @@ function handle_proxy_request(WP_REST_Request $request)
     $data = $request->get_json_params();
 
     // The API URL you want to call
-    $api_url = 'https://app.faaaster.io/api/applications/' . APP_ID . '/instances/' . BRANCH . '/annotate';
+    $api_url = 'https://local.faaaster.io/api/applications/' . APP_ID . '/instances/' . BRANCH . '/annotate';
 
 
     // Define the request arguments

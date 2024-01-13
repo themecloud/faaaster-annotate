@@ -1,14 +1,52 @@
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", async function () {
+  if (window !== window.top) {
+    // The page is loaded inside an iframe
+    return;
+  }
+
+  // Set translations
+  const translations = {
+    fr: {
+      helpText: "Sélectionnez du texte pour ajouter un commentaire. Cliquez sur un commentaire ci dessous pour le localiser dans la page.",
+      navigate: "Naviguer",
+      annotate: "Annoter",
+      loginText: "Veuillez choisir un identifiant et saisir votre email pour pouvoir annoter le site.",
+      username: "Identifiant",
+      validate: "Valider"
+    },
+    en: {
+      helpText: "Select text to add a comment. Click on a comment below to locate it on the page.",
+      navigate: "Navigate",
+      annotate: "Annotate",
+      loginText: "Please choose a username and enter your email to be able to annotate the site.",
+      username: "Username",
+      validate: "Validate"
+    }
+  };
+
+
   // Access applicationId and instanceId from PHP
   var locale = appConfig.locale.substring(3, 5);
-  var user = appConfig.user;
-  var userCookie = appConfig.cookie;
+  var lang = locale.includes("FR") ? "fr" : "en";
+  const wpuser = appConfig.user;
+  const wpemail = appConfig.email;
+  const wpannotate = appConfig.annotate;
   var anno = null;
   let annotateblock = false;
-  let loading = true;
+  const homeUrl = window.location.protocol + "//" + window.location.host;
   var encodedPathName = (window.location.host + window.location.pathname)
     .replace(/\//g, "-")
     .replace(/\./g, "-");
+  var targetElement = document.body;
+  let wpAdminBarHeight = 0;
+  if (document.getElementById("wpadminbar")) {
+    wpAdminBar = document.getElementById("wpadminbar").getBoundingClientRect();
+    wpAdminBarHeight = wpAdminBar.height;
+  }
+
+
+  /****** MANAGE COOKIES ******/
+
   // Function to set cookie
   function setCookie(name, value, days) {
     var expires = "";
@@ -19,7 +57,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     document.cookie = name + "=" + (value || "") + expires + "; path=/";
   }
- 
 
   // Function to get cookie
   function getCookieValue(name) {
@@ -39,25 +76,73 @@ document.addEventListener("DOMContentLoaded", function () {
     // If the cookie is not found, return undefined or a default value
     return undefined;
   }
-  // console.log("cookie annotateMode", getCookieValue("annotateMode"));
-  let annotateMode = getCookieValue("annotateMode") == "true" ? true : false;
-  
-  console.log("annotateMode", annotateMode, typeof annotateMode);
-  // Set user cookie if not exists
-  if (!userCookie) {
-    setCookie("annotate", user, 7);
-  }
+
+  /****** INIT VARIABLES ******/
+
+  // Get user and annotateMode from cookie
+  let faaasterAnnotate = getCookieValue("faaaster-annotate") ? JSON.parse(getCookieValue("faaaster-annotate")) : { username: undefined, annotateMode: false };
+  // console.log("faaasterAnnotateInit", faaasterAnnotate, typeof faaasterAnnotate);
+  // console.log("user", faaasterAnnotate.username, "Mode", faaasterAnnotate.annotateMode);
+
+  // Init user and annotateMode
+  let annotateMode = wpannotate == "true" ? true : wpannotate == "false" ? false : faaasterAnnotate.annotateMode;
+  let user = wpuser ? wpuser : faaasterAnnotate.username ? faaasterAnnotate.username : false;
+  let email = wpemail ? wpemail : faaasterAnnotate.email ? faaasterAnnotate.email : false;
+  // console.log("user", user, "annotateMode", annotateMode);
+  // console.log("annotateMode", annotateMode, typeof annotateMode);
+  setCookie("faaaster-annotate", JSON.stringify({ username: user, email: email, annotateMode: annotateMode }), 30);
+
 
   // Init body for annotations
   document.body.id = "myCustomId";
 
-  /******* FLOATING BUTTON ******/
 
-  // Add interface
-  var saveButton = document.createElement("div");
-  saveButton.id = "saveCommentButton";
-  saveButton.textContent = "Save Comment";
+  /******* ADD INTERFACE ******/
 
+  // Add Pointers container
+  var pointers = document.createElement("div");
+  pointers.id = "faaasterPointers";
+  targetElement.appendChild(pointers);
+
+  // Add Loading overlay
+  var loading = document.createElement("div");
+  loading.id = "faaasterLoading";
+
+  // Add Login Modal
+  var modal = document.createElement("div");
+  modal.id = "userModal";
+  // console.log("user", user, "annotateMode", annotateMode == false);
+  const modalContent = '<div class="faaaster-modal-content"><span class="faaaster-close">&times;</span><p>' + translations[lang].loginText + '</p><form id="loginForm"><label for="username">' + translations[lang].username + '</label><br><input type="text" id="username" name="username"><br><label for="password">Email</label><br><input type="email" id="email" name="email"><br><input type="submit" value="' + translations[lang].validate + '"></form></div>';
+  modal.innerHTML += modalContent;
+  targetElement.appendChild(modal);
+
+  let modalClose = document.getElementsByClassName("faaaster-close")[0];
+  let form = document.getElementById("loginForm");
+
+  // Hide modal if user set or annotateMode false
+  if (!user && annotateMode == true) {
+    modal.style.display = "block";
+  }
+  modalClose.onclick = function () {
+    modal.style.display = "none";
+  }
+
+  window.onclick = function (event) {
+    if (event.target == modal) {
+      modal.style.display = "none";
+    }
+  }
+
+  form.onsubmit = function (e) {
+    e.preventDefault();
+    user = document.getElementById("username").value;
+    const args = { id: email, displayName: user };
+    // console.log("args", args);
+    anno.setAuthInfo(args);
+    let email = document.getElementById("email").value;
+    setCookie("faaaster-annotate", JSON.stringify({ username: user, email: email, annotateMode: true }), 30);
+    modal.style.display = "none";
+  }
 
   // Add ActionBar
   var actionBar = document.createElement("div");
@@ -65,20 +150,15 @@ document.addEventListener("DOMContentLoaded", function () {
   //const actionBarContent = '<div id="annotateToggle" class="actionBarButton"></div><div id="navigateToggle" class="actionBarButton"></div><div class="actionBarButton" id="shareModal"></div>';
   const actionBarContent = '<div id="annotateToggle" class="actionBarButton"></div><div id="navigateToggle" class="actionBarButton"></div>';
   actionBar.innerHTML += actionBarContent;
-  
-  // Identify the target element where the button will be placed
-  var targetElement = document.body; // Replace with your target element's ID
-
-  // Append the button to the target element
-  targetElement.appendChild(saveButton);
   targetElement.appendChild(actionBar);
+
 
   // Initialize actionBar
   var annotateToggle = document.getElementById("annotateToggle");
   var navigateToggle = document.getElementById("navigateToggle");
-  if(annotateMode){
+  if (annotateMode) {
     annotateToggle.classList.add("selected");
-  }else{
+  } else {
     navigateToggle.classList.add("selected");
   }
   // Function to hide sidebar
@@ -126,33 +206,37 @@ document.addEventListener("DOMContentLoaded", function () {
       element.closest(".r6o-editor") !== null
         ? false
         : element.closest("#annotationSidebar") !== null
-        ? false
-        : element.closest("#wpadminbar") !== null
-        ? false
-        : element.closest("#actionBar") !== null
-        ? false
-        : annotateblock
-        ? false
-        : textEvent
-        ? true
-        : false;
+          ? false
+          : element.closest("#wpadminbar") !== null
+            ? false
+            : element.closest("#actionBar") !== null
+              ? false
+              : element.closest("#userModal") !== null
+                ? false
+                : annotateblock
+                  ? false
+                  : textEvent
+                    ? true
+                    : false;
     const clickThrough =
       element.closest(".r6o-editor") !== null
         ? true
         : element.closest("#annotationSidebar") !== null
-        ? true
-        : element.closest("#wpadminbar") !== null
-        ? true
-        : element.closest("#actionBar") !== null
-        ? true
-        : annotateblock
-        ? false
-        : !annotateMode
-        ? true
-        : false;
+          ? true
+          : element.closest("#wpadminbar") !== null
+            ? true
+            : element.closest("#actionBar") !== null
+              ? true
+              : element.closest("#userModal") !== null
+                ? true
+                : annotateblock
+                  ? false
+                  : !annotateMode
+                    ? true
+                    : false;
 
-    console.log("triggerAnno", triggerAnno);
-    console.log("clickThrough", clickThrough);
+    // console.log("triggerAnno", triggerAnno);
+    // console.log("clickThrough", clickThrough);
     // console.log("trigger", triggerAnno);
     return [triggerAnno, clickThrough];
   }
@@ -162,7 +246,7 @@ document.addEventListener("DOMContentLoaded", function () {
     var sidebar = document.createElement("div");
 
     sidebar.innerHTML +=
-      "<div id='sidebar-header'><div id='sidebar-title'><h2>Annotations</h2></div><div id='sidebar-help'><h4>Sélectionnez du texte pour ajouter un commentaire.<br>Cliquez sur un commentaire ci dessous pour le localiser dans la page.</h4></div></div><ul id='sidebar-annotations'></ul><div id='annotate-mode'><span class='mySwitchText'>Naviguer</span><input type='checkbox' id='mySwitch' /><label for='mySwitch' id='mySwitchLabel'>Annotate</label><span class='mySwitchText'>Annoter</span></div><div id='anno-minimize'><svg stroke='currentColor' fill='currentColor' stroke-width='0' viewBox='0 0 256 512' class='jss590' height='1em' width='1em' xmlns='http://www.w3.org/2000/svg'><path d='M224.3 273l-136 136c-9.4 9.4-24.6 9.4-33.9 0l-22.6-22.6c-9.4-9.4-9.4-24.6 0-33.9l96.4-96.4-96.4-96.4c-9.4-9.4-9.4-24.6 0-33.9L54.3 103c9.4-9.4 24.6-9.4 33.9 0l136 136c9.5 9.4 9.5 24.6.1 34z'></path></svg></div>";
+      "<div id='sidebar-header'><div id='sidebar-title'><h2>Annotations</h2></div><div id='sidebar-help'><h4>" + translations[lang].helpText + "</h4></div></div><ul id='sidebar-annotations'></ul><div id='annotate-mode'><span class='mySwitchText'>Naviguer</span><input type='checkbox' id='mySwitch' /><label for='mySwitch' id='mySwitchLabel'>" + translations[lang].navigate + "</label><span class='mySwitchText'>" + translations[lang].annotate + "</span></div><div id='anno-minimize'><svg stroke='currentColor' fill='currentColor' stroke-width='0' viewBox='0 0 256 512' class='jss590' height='1em' width='1em' xmlns='http://www.w3.org/2000/svg'><path d='M224.3 273l-136 136c-9.4 9.4-24.6 9.4-33.9 0l-22.6-22.6c-9.4-9.4-9.4-24.6 0-33.9l96.4-96.4-96.4-96.4c-9.4-9.4-9.4-24.6 0-33.9L54.3 103c9.4-9.4 24.6-9.4 33.9 0l136 136c9.5 9.4 9.5 24.6.1 34z'></path></svg></div>";
     sidebar.id = "annotationSidebar";
 
     // // Create a list inside the sidebar
@@ -184,34 +268,43 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     mySwitch.addEventListener("change", function () {
+      // console.log(">>>>>>>>>> SWITCH CHANGE");
       // console.log("test switch", this.checked);
       // Update the global variable based on the checkbox state
       annotateMode = this.checked;
-      console.log("AnnotateMode state is now:", annotateMode);
+      // console.log("AnnotateMode state is now:", annotateMode);
       if (annotateMode == false) {
-        // Select all elements with the class 'r6o-annotation'
+        // Hide 'r6o-annotation'
         const elements = document.querySelectorAll(".r6o-annotation");
-
-        // Loop through the NodeList and change the class
         elements.forEach(function (element) {
           element.classList.replace("r6o-annotation", "r6o-annotation-hidden");
         });
-        
-        document.cookie = "annotateMode=false; path=/";
+        // Hide 'r6o-pointers'
+        const pointers = document.getElementById("faaasterPointers");
+        pointers.classList.add('faaaster-hidden');
+
+        setCookie("faaaster-annotate", JSON.stringify({ username: user, email: email, annotateMode: false }), 30);
         annotateToggle.classList.remove("selected");
         navigateToggle.classList.add("selected");
       } else {
-        // Select all elements with the class 'r6o-annotation'
+        loading.classList.remove("faaaster-hidden");
+        initAnno();
+        // console.log("modaluser", user);
+        if (!user) {
+          modal.style.display = "block";
+        }
+        // Show 'r6o-annotation'
         const elements = document.querySelectorAll(".r6o-annotation-hidden");
-
-        // Loop through the NodeList and change the class
         elements.forEach(function (element) {
           element.classList.replace("r6o-annotation-hidden", "r6o-annotation");
         });
-        document.cookie = "annotateMode=true; path=/";
+        // Show 'r6o-pointers'
+        const pointers = document.getElementById("faaasterPointers");
+        pointers.classList.remove('faaaster-hidden');
+        setCookie("faaaster-annotate", JSON.stringify({ username: user, email: email, annotateMode: true }), 30);
         annotateToggle.classList.add("selected");
         navigateToggle.classList.remove("selected");
-        
+
       }
     });
 
@@ -223,6 +316,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   async function initAnno() {
+    targetElement.appendChild(loading);
     // console.log("INITIALIZE ANNO");
     // Initialize recogito.js
     anno = Recogito.init({
@@ -240,7 +334,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // Initialize user
-    var homeUrl = window.location.protocol + "//" + window.location.host;
     const args = { id: homeUrl + "/" + user, displayName: user };
     // console.log("args", args);
     anno.setAuthInfo(args);
@@ -253,23 +346,25 @@ document.addEventListener("DOMContentLoaded", function () {
     })
       .then((response) => response.json())
       .then((data) => {
-        console.log("Success:", data);
+        // console.log("Success:", data);
       })
       .catch((error) => console.error("Error:", error));
 
     // Load existing annotations
-    anno
+    await anno
       .loadAnnotations(
         "/wp-json/annotate/v1/annotations?url=" + encodedPathName
       )
       .then(function (annotations) {
         console.log("Annotations loaded", annotations);
+        loading.classList.add("faaaster-hidden");
         updateSidebar(annotations);
         optimizeAnnotations(annotations);
         setupClickListeners();
         // Set annotateMode cookie if not exists
         // console.log("change switch", getCookieValue("annotateMode"));
-        if (getCookieValue("annotateMode") == "false") {
+        // console.log("annotateMode", annotateMode);
+        if (annotateMode == false) {
           // console.log("switch false");
           const mySwitch = document.getElementById("mySwitch");
           mySwitch.checked = false;
@@ -281,92 +376,99 @@ document.addEventListener("DOMContentLoaded", function () {
           mySwitch.dispatchEvent(changeEvent);
         }
       });
-      // Optimize and store annotations
+    // Optimize and store annotations
 
-  anno.on("createAnnotation", function (annotation) {
-    console.log("encodedPathName", encodedPathName);
-    console.log("annotation", annotation);
-    console.log("get annos", anno.getAnnotations());
-    var commentsData = anno.getAnnotations();
-    commentsData.sort((a, b) => {
-      const dateA = new Date(a.body[0].created);
-      const dateB = new Date(b.body[0].created);
-      return dateA - dateB; // Ascending order
+    anno.on("createAnnotation", function (annotation) {
+      // console.log("encodedPathName", encodedPathName);
+      // console.log("annotation", annotation);
+      // console.log("get annos", anno.getAnnotations());
+      var commentsData = anno.getAnnotations();
+      commentsData.sort((a, b) => {
+        const dateA = new Date(a.body[0].created);
+        const dateB = new Date(b.body[0].created);
+        return dateA - dateB; // Ascending order
+      });
+      commentsData.forEach((object, index) => {
+        object.index = index;
+      });
+      // console.log("commentsData", commentsData);
+      // find the annotation in the array with the id
+      // var index = commentsData.findIndex((x) => x.id === annotation.id);
+      // console.log("index", index, "id", annotation.id);
+      // // update the annotation
+      // // commentsData[index].url = encodedPathName;
+      // // console.log("uniqueSelector", uniqueSelector);
+      // // commentsData[index].selector = uniqueSelector;
+      updateSidebar(commentsData);
+      optimizeAnnotations(commentsData);
+      setupClickListeners();
+      // console.log("commentsData", commentsData);
+      fetch("/wp-json/annotate/v1/proxy/?url=" + encodedPathName, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(commentsData),
+      })
+        .then((response) => response.json())
+        .then((data) => console.log("Success:", data))
+        .catch((error) => console.error("Error:", error));
+
+      // console.log("Annotation created:", annotation);
+      clearSelections();
     });
-    commentsData.forEach((object, index) => {
-      object.index = index;
+
+    anno.on("updateAnnotation", function (annotation) {
+      // console.log("encodedPathName", encodedPathName);
+      var commentsData = anno.getAnnotations();
+      commentsData.sort((a, b) => {
+        const dateA = new Date(a.body[0].created);
+        const dateB = new Date(b.body[0].created);
+        return dateA - dateB; // Ascending order
+      });
+      commentsData.forEach((object, index) => {
+        object.index = index;
+      });
+      // console.log("commentsData", commentsData);
+      // // find the annotation in the array with the id
+      // var index = commentsData.findIndex((x) => x.id === annotation.id);
+      // // update the annotation
+      // commentsData[index].url = encodedPathName;
+      // console.log("uniqueSelector", uniqueSelector);
+      // commentsData[index].selector = uniqueSelector;
+      updateSidebar(commentsData);
+
+      optimizeAnnotations(commentsData);
+      setupClickListeners();
+      // console.log("commentsData", commentsData);
+      fetch("/wp-json/annotate/v1/proxy/?url=" + encodedPathName, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(commentsData),
+      })
+        .then((response) => response.json())
+        .then((data) => console.log("Success:", data))
+        .catch((error) => console.error("Error:", error));
+
+      // console.log("Annotation updated:", annotation);
+      clearSelections();
     });
-    // console.log("commentsData", commentsData);
-    // find the annotation in the array with the id
-    // var index = commentsData.findIndex((x) => x.id === annotation.id);
-    // console.log("index", index, "id", annotation.id);
-    // // update the annotation
-    // // commentsData[index].url = encodedPathName;
-    // // console.log("uniqueSelector", uniqueSelector);
-    // // commentsData[index].selector = uniqueSelector;
-    updateSidebar(commentsData);
-    optimizeAnnotations(commentsData);
-    setupClickListeners();
-    console.log("commentsData", commentsData);
-    fetch("/wp-json/annotate/v1/proxy/?url=" + encodedPathName, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(commentsData),
-    })
-      .then((response) => response.json())
-      .then((data) => console.log("Success:", data))
-      .catch((error) => console.error("Error:", error));
-
-    console.log("Annotation created:", annotation);
-    clearSelections();
-  });
-
-  anno.on("updateAnnotation", function (annotation) {
-    console.log("encodedPathName", encodedPathName);
-    var commentsData = anno.getAnnotations();
-    commentsData.sort((a, b) => {
-      const dateA = new Date(a.body[0].created);
-      const dateB = new Date(b.body[0].created);
-      return dateA - dateB; // Ascending order
-    });
-    commentsData.forEach((object, index) => {
-      object.index = index;
-    });
-    // console.log("commentsData", commentsData);
-    // // find the annotation in the array with the id
-    // var index = commentsData.findIndex((x) => x.id === annotation.id);
-    // // update the annotation
-    // commentsData[index].url = encodedPathName;
-    // console.log("uniqueSelector", uniqueSelector);
-    // commentsData[index].selector = uniqueSelector;
-    updateSidebar(commentsData);
-
-    optimizeAnnotations(commentsData);
-    setupClickListeners();
-    console.log("commentsData", commentsData);
-    fetch("/wp-json/annotate/v1/proxy/?url=" + encodedPathName, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(commentsData),
-    })
-      .then((response) => response.json())
-      .then((data) => console.log("Success:", data))
-      .catch((error) => console.error("Error:", error));
-
-    console.log("Annotation updated:", annotation);
-    clearSelections();
-  });
-      loading = false;
   }
   createSidebar();
-  initAnno();
-  if(annotateMode == true){
-   
-  }else{
+
+  if (annotateMode == true) {
+    initAnno();
+  } else {
+    // Hide 'r6o-annotations'
+    const elements = document.querySelectorAll(".r6o-annotation");
+    elements.forEach(function (element) {
+      element.classList.replace("r6o-annotation", "r6o-annotation-hidden");
+    });
+    // Hide 'r6o-pointers'
+    const pointers = document.getElementById("faaasterPointers");
+    pointers.classList.add('faaaster-hidden');
     toggleSidebar();
   }
   // Manage custom cursor
@@ -375,13 +477,15 @@ document.addEventListener("DOMContentLoaded", function () {
     // Check if the target should be triggered
     // console.log("cursor trigger", trigger(event.target)[0]);
     if (!annotateMode) {
+      //console.log("remove attr");
+      event.target.removeAttribute("faaaster-annotate");
       return;
     }
     if (trigger(event.target)[0]) {
-      event.target.classList.add("faaaster-annotate");
+      event.target.setAttribute('faaaster-annotate', true);
     } else {
       // Remove the class if not hovering over text
-      event.target.classList.remove("faaaster-annotate");
+      event.target.removeAttribute("faaaster-annotate");
     }
   });
 
@@ -410,25 +514,25 @@ document.addEventListener("DOMContentLoaded", function () {
       var listItem =
         commentsNumber > 0
           ? '<div class="sidebar-annotation"><div class="sidebar-annotation-content"><span class="sidebar-annotation-index"><span>' +
-            annotation.index +
-            "</span></span>" +
-            annotation.body[0].value +
-            '</div><div class="sidebar-annotation-meta"><span class="r6o-lastmodified-by">' +
-            annotation.body[0].creator.name +
-            '</span><span class="r6o-lastmodified-at"><time class="" datetime="1704493363444" timeago-id="1343">' +
-            prettyModified +
-            '</time></span><span class="anno-comments-number">' +
-            commentsNumber +
-            "</span></div></div>"
+          annotation.index +
+          "</span></span>" +
+          annotation.body[0].value +
+          '</div><div class="sidebar-annotation-meta"><span class="r6o-lastmodified-by">' +
+          annotation.body[0].creator.name +
+          '</span><span class="r6o-lastmodified-at"><time class="" datetime="1704493363444" timeago-id="1343">' +
+          prettyModified +
+          '</time></span><span class="anno-comments-number">' +
+          commentsNumber +
+          "</span></div></div>"
           : '<div class="sidebar-annotation"><div class="sidebar-annotation-content"><span class="sidebar-annotation-index"><span>' +
-            annotation.index +
-            "</span></span>" +
-            annotation.body[0].value +
-            '</div><div class="sidebar-annotation-meta"><span class="r6o-lastmodified-by">' +
-            annotation.body[0].creator.name +
-            '</span><span class="r6o-lastmodified-at"><time class="" datetime="1704493363444" timeago-id="1343">' +
-            prettyModified +
-            "</time></span></div></div>";
+          annotation.index +
+          "</span></span>" +
+          annotation.body[0].value +
+          '</div><div class="sidebar-annotation-meta"><span class="r6o-lastmodified-by">' +
+          annotation.body[0].creator.name +
+          '</span><span class="r6o-lastmodified-at"><time class="" datetime="1704493363444" timeago-id="1343">' +
+          prettyModified +
+          "</time></span></div></div>";
       newItem.innerHTML += listItem;
     });
   }
@@ -527,6 +631,79 @@ document.addEventListener("DOMContentLoaded", function () {
     return matrix[b.length][a.length];
   }
 
+  // Function to check if an element or any of its parents have position fixed
+  function isPositionFixed(element) {
+    while (element) {
+      if (window.getComputedStyle(element).position === 'fixed') {
+        return true;
+      }
+      element = element.parentElement;
+    }
+    return false;
+  }
+
+  // Create pointers
+  function createAndPositionPointer(annotationElement, index, id) {
+    // console.log("annotationElement", annotationElement);
+    // Create a new element with class 'r6o-pointer'
+    const pointerElement = document.createElement('div');
+    pointerElement.className = 'r6o-pointer';
+
+    // Get position and size of the annotation element
+    const rect = annotationElement.getBoundingClientRect();
+
+    // Check if the annotationElement or any of its parent elements are fixed
+    const fixedPosition = isPositionFixed(annotationElement);
+
+    // Set style to position the pointer element at the same place
+    pointerElement.style.position = fixedPosition ? 'fixed' : 'absolute';
+    pointerElement.style.left = rect.left + (fixedPosition ? 0 : window.scrollX) + 'px';
+    pointerElement.style.top = rect.top + (fixedPosition ? 0 : window.scrollY - wpAdminBarHeight) + 'px';
+    pointerElement.style.width = rect.width + 'px';
+    pointerElement.style.height = rect.height + 'px';
+    pointerElement.style.cursor = 'pointer';
+    pointerElement.setAttribute('pointer-id', id);
+    // pointerElement.classList.add('r6o-annotation');
+    pointerElement.style.setProperty(
+      "--after-content",
+      '"' + index + '"'
+    );
+    // Add click event listener to the pointer element
+    pointerElement.addEventListener('click', function (event) {
+      // console.log(event.target.getAttribute('pointer-id'));
+      // Simulate a click on the annotationElement
+      const element = document.querySelector(
+        ".r6o-annotation[data-id='" + event.target.getAttribute('pointer-id') + "'"
+      );
+      // console.log("clicked element", element);
+      const downEvent = new MouseEvent('mousedown', {
+        bubbles: true,
+        cancelable: true,
+        view: window
+      });
+      element.dispatchEvent(downEvent);
+
+
+
+      const newEvent = new MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+        view: window
+      });
+      element.dispatchEvent(newEvent);
+
+      const upEvent = new MouseEvent('mouseup', {
+        bubbles: true,
+        cancelable: true,
+        view: window
+      });
+      element.dispatchEvent(upEvent);
+    });
+
+    // Append the pointer element to the body
+    pointers.appendChild(pointerElement);
+  }
+
   // Optimize annotations new
 
   function optimizeAnnotations(annotations) {
@@ -534,9 +711,10 @@ document.addEventListener("DOMContentLoaded", function () {
       var elements = document.querySelectorAll(
         "[data-id='" + annotation.id + "'"
       );
-      console.log(annotation.id, " >> ", elements.length);
-      var newElement = document.querySelector(annotation.selector);
-      var elementOk = false;
+      // console.log(annotation.id, " >> ", elements.length);
+      elements.forEach((element) => {
+        createAndPositionPointer(element, annotation.index, annotation.id);
+      });
       // console.log("NEW ELEMENT", newElement);
       // console.log("elementOk", elementOk);
       elements.forEach((element) => {
@@ -551,8 +729,9 @@ document.addEventListener("DOMContentLoaded", function () {
   document.addEventListener(
     "mousedown",
     function (event) {
-      // console.log("mouseDown trigger", trigger(event.target)[0]);
+      // console.log("mouseDown >> ", trigger(event.target)[0]);
       if (!annotateMode) {
+        // console.log("mouseDown >> STOP");
         event.stopPropagation();
         return;
       }
@@ -580,7 +759,7 @@ document.addEventListener("DOMContentLoaded", function () {
   document.addEventListener(
     "mouseup",
     function (event) {
-      if(event.target.closest("#actionBar")){
+      if (event.target.closest("#actionBar")) {
         return;
       }
       // console.log(">>>> MOUSE UP FORCE", event.target);
@@ -596,7 +775,7 @@ document.addEventListener("DOMContentLoaded", function () {
     true
   );
   document.addEventListener("mouseup", function (event) {
-    console.log(">>>> MOUSE UP", event.target);
+    // console.log(">>>> MOUSE UP", event.target);
     if (!annotateMode) {
       event.stopPropagation();
       return;
@@ -611,7 +790,6 @@ document.addEventListener("DOMContentLoaded", function () {
   document.addEventListener("click", function (event) {
     //alert("click clickthrough", trigger(event.target));
     if (event.target.id == "annotateToggle" && annotateMode == false) {
-      console.log("Annotate");
       navigateToggle.classList.remove("selected");
       event.target.classList.add("selected");
       const newEvent = new MouseEvent('click', {
@@ -621,13 +799,13 @@ document.addEventListener("DOMContentLoaded", function () {
       });
       mySwitch.dispatchEvent(newEvent);
       const sideBAr = document.getElementById("annotationSidebar");
-        if (sideBAr.classList.contains("sideBarHidden")) {
-         console.log("Close SideBar");
-          sideBAr.classList.remove("sideBarHidden");
-        }  
-    } 
+      if (sideBAr.classList.contains("sideBarHidden")) {
+        // console.log("Close SideBar");
+        sideBAr.classList.remove("sideBarHidden");
+      }
+    }
     if (event.target.id == "navigateToggle" && annotateMode == true) {
-      console.log("Navigate");
+      // console.log("Navigate");
       annotateToggle.classList.remove("selected");
       event.target.classList.add("selected");
       const newEvent = new MouseEvent('click', {
@@ -635,14 +813,14 @@ document.addEventListener("DOMContentLoaded", function () {
         cancelable: true,
         view: window
       });
-             
+
       mySwitch.dispatchEvent(newEvent);
       const sideBAr = document.getElementById("annotationSidebar");
-        if (!sideBAr.classList.contains("sideBarHidden")) {
-          console.log("Close SideBar");
-          sideBAr.classList.add("sideBarHidden");
-        }   
-    } 
+      if (!sideBAr.classList.contains("sideBarHidden")) {
+        // console.log("Close SideBar");
+        sideBAr.classList.add("sideBarHidden");
+      }
+    }
     if (event.target.classList.contains("anno-refresh")) {
       // console.log("GET ANNOS", anno.getAnnotations());
     }
@@ -687,7 +865,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  
+
 
   // Additional event listeners as needed
 });
