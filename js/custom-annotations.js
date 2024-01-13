@@ -112,34 +112,24 @@ document.addEventListener("DOMContentLoaded", async function () {
   var modal = document.createElement("div");
   modal.id = "userModal";
   // console.log("user", user, "annotateMode", annotateMode == false);
-  const modalContent = '<div class="faaaster-modal-content"><span class="faaaster-close">&times;</span><p>' + translations[lang].loginText + '</p><form id="loginForm"><label for="username">' + translations[lang].username + '</label><br><input type="text" id="username" name="username"><br><label for="password">Email</label><br><input type="email" id="email" name="email"><br><input type="submit" value="' + translations[lang].validate + '"></form></div>';
+  const modalContent = '<div class="faaaster-modal-content"><p>' + translations[lang].loginText + '</p><form id="loginForm"><label for="username">' + translations[lang].username + '</label><br><input type="text" id="username" name="username"><br><label for="password">Email</label><br><input type="email" id="email" name="email"><br><input class="modalButton" type="submit" value="' + translations[lang].validate + '"></form></div>';
   modal.innerHTML += modalContent;
   targetElement.appendChild(modal);
 
-  let modalClose = document.getElementsByClassName("faaaster-close")[0];
+
   let form = document.getElementById("loginForm");
 
   // Hide modal if user set or annotateMode false
   if (!user && annotateMode == true) {
     modal.style.display = "block";
   }
-  modalClose.onclick = function () {
-    modal.style.display = "none";
-  }
-
-  window.onclick = function (event) {
-    if (event.target == modal) {
-      modal.style.display = "none";
-    }
-  }
 
   form.onsubmit = function (e) {
     e.preventDefault();
     user = document.getElementById("username").value;
-    const args = { id: email, displayName: user };
-    // console.log("args", args);
-    anno.setAuthInfo(args);
     let email = document.getElementById("email").value;
+    const args = { id: email, displayName: user };
+    anno.setAuthInfo(args);
     setCookie("faaaster-annotate", JSON.stringify({ username: user, email: email, annotateMode: true }), 30);
     modal.style.display = "none";
   }
