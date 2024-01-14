@@ -103,7 +103,7 @@ function handle_proxy_request(WP_REST_Request $request)
     $data = $request->get_json_params();
 
     // The API URL you want to call
-    $api_url = 'https://local.faaaster.io/api/applications/' . APP_ID . '/instances/' . BRANCH . '/annotate';
+    $api_url = 'https://app.faaaster.io/api/applications/' . APP_ID . '/instances/' . BRANCH . '/annotate';
 
 
     // Define the request arguments
@@ -137,7 +137,7 @@ function handle_users_request(WP_REST_Request $request)
     // error_log("users".json_encode($data));
 
     // The API URL you want to call
-    $api_url = 'https://local.faaaster.io/api/applications/' . APP_ID . '/instances/' . BRANCH . '/annotate/users';
+    $api_url = 'https://app.faaaster.io/api/applications/' . APP_ID . '/instances/' . BRANCH . '/annotate/users';
 
 
     // Define the request arguments
