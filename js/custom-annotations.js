@@ -126,22 +126,25 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   form.onsubmit = async function (e) {
     e.preventDefault();
-    await fetch("/wp-json/annotate/v1/user", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({username: user, email: email}),
-    })
-      .then((response) => response.json())
-      .then((data) => console.log("Success:", data))
-      .catch((error) => console.error("Error:", error));
+
     user = document.getElementById("username").value;
     let email = document.getElementById("email").value;
     const args = { id: email, displayName: user };
     anno.setAuthInfo(args);
     setCookie("faaaster-annotate", JSON.stringify({ username: user, email: email, annotateMode: true }), 30);
     modal.style.display = "none";
+    if (user && email) {
+      await fetch("/wp-json/annotate/v1/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username: user, email: email }),
+      })
+        .then((response) => response.json())
+        .then((data) => console.log("Success:", data))
+        .catch((error) => console.error("Error:", error));
+    }
   }
 
   // Add ActionBar
@@ -337,6 +340,19 @@ document.addEventListener("DOMContentLoaded", async function () {
     const args = { id: homeUrl + "/" + user, displayName: user };
     // console.log("args", args);
     anno.setAuthInfo(args);
+    console.log("user", user, email);
+    if (user && email) {
+      await fetch("/wp-json/annotate/v1/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username: user, email: email }),
+      })
+        .then((response) => response.json())
+        .then((data) => console.log("Success:", data))
+        .catch((error) => console.error("Error:", error));
+    }
 
     await fetch("/wp-json/annotate/v1/annotations/?url=" + encodedPathName, {
       method: "GET",
