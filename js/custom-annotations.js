@@ -112,7 +112,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   var modal = document.createElement("div");
   modal.id = "userModal";
   // console.log("user", user, "annotateMode", annotateMode == false);
-  const modalContent = '<div class="faaaster-modal-content"><p>' + translations[lang].loginText + '</p><form id="loginForm"><label for="username">' + translations[lang].username + '</label><br><input type="text" id="username" name="username"><br><label for="password">Email</label><br><input type="email" id="email" name="email"><br><input class="modalButton" type="submit" value="' + translations[lang].validate + '"></form></div>';
+  const modalContent = '<div class="faaaster-modal-content"><p>' + translations[lang].loginText + '</p><form id="loginForm"><label for="username">' + translations[lang].username + '</label><input type="text" id="username" name="username"><label for="password">Email</label><input type="email" id="email" name="email"><input class="modalButton" type="submit" value="' + translations[lang].validate + '"></form></div>';
   modal.innerHTML += modalContent;
   targetElement.appendChild(modal);
 
@@ -124,8 +124,18 @@ document.addEventListener("DOMContentLoaded", async function () {
     modal.style.display = "block";
   }
 
-  form.onsubmit = function (e) {
+  form.onsubmit = async function (e) {
     e.preventDefault();
+    await fetch("/wp-json/annotate/v1/user", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({username: user, email: email}),
+    })
+      .then((response) => response.json())
+      .then((data) => console.log("Success:", data))
+      .catch((error) => console.error("Error:", error));
     user = document.getElementById("username").value;
     let email = document.getElementById("email").value;
     const args = { id: email, displayName: user };
