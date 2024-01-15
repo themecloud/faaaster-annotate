@@ -104,24 +104,27 @@
 
 #sidebar-help h4{
     font-size:12px;
-    font-family: Inter, sans-serif;
+    font-family: Inter, sans-serif !important;
     margin:0;
-    color: #666;
+    color: #666 !important;
+    font-weight: 400 !important;
 }
 #annotationSidebar h2{
     font-size:18px;
-    font-family: Inter, sans-serif;
+    font-family: Inter, sans-serif !important;
     margin: 10px 0;
     position: relative;
     display: inline-block;
     padding-left:30px;
+    color:white !important;
+    font-weight: 400 !important;
 }
 #annotationSidebar h2:before{
     content:"";
     position:absolute;
     width:30px;
     height:100%;
-    left:3px;
+    left:-30px;
     top:0;
     background-image:url(../images/0472-bubbles.svg);
     background-repeat: no-repeat;
@@ -138,6 +141,7 @@
     padding: 1px 4px;
     border-radius: 3px;
     font-size: 12px;
+    line-height:15px !important;
 }
 
 
