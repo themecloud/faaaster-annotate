@@ -1,10 +1,11 @@
 <?php
 
 /**
- * Plugin Name: Recogito Annotations
- * Description: A plugin to integrate recogito.js for annotations in WordPress.
+ * Plugin Name: Faaaster Annotations
+ * Description: Collect feedback on your WordPress website thanks to visual annoatations. Powered by recogito.js.
  * Version: 1.0
- * Author: Your Name
+ * Author: Faaaster.io
+ * Author URI: https://www.faaaster.io/
  */
 
 // Hook for enqueuing scripts
