@@ -7,20 +7,24 @@ document.addEventListener("DOMContentLoaded", async function () {
   // Set translations
   const translations = {
     fr: {
-      helpText: "Sélectionnez du texte pour ajouter un commentaire. Cliquez sur un commentaire ci dessous pour le localiser dans la page.",
+      helpText: "Cliquez un bloc de texte pour ajouter un commentaire. Cliquez sur un commentaire ci dessous pour le localiser dans la page.",
       navigate: "Naviguer",
       annotate: "Annoter",
       loginText: "Veuillez choisir un identifiant et saisir votre email pour pouvoir annoter le site.",
       username: "Identifiant",
-      validate: "Valider"
+      validate: "Valider",
+      days: "j",
+      weeks: "s"
     },
     en: {
-      helpText: "Select text to add a comment. Click on a comment below to locate it on the page.",
+      helpText: "Click text to add a comment. Click on a comment below to locate it on the page.",
       navigate: "Navigate",
       annotate: "Annotate",
       loginText: "Please choose a username and enter your email to be able to annotate the site.",
       username: "Username",
-      validate: "Validate"
+      validate: "Validate",
+      days: "d",
+      weeks: "w",
     }
   };
 
@@ -42,6 +46,33 @@ document.addEventListener("DOMContentLoaded", async function () {
   if (document.getElementById("wpadminbar")) {
     wpAdminBar = document.getElementById("wpadminbar").getBoundingClientRect();
     wpAdminBarHeight = wpAdminBar.height;
+  }
+
+
+  /****** TIME AGO ******/
+  function timeAgo(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now - date); // Difference in milliseconds
+
+    // Convert to minutes, hours, days, weeks, or months
+    const diffMinutes = Math.ceil(diffTime / (1000 * 60));
+    const diffHours = Math.ceil(diffTime / (1000 * 60 * 60));
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const diffWeeks = Math.ceil(diffDays / 7);
+    const diffMonths = Math.ceil(diffDays / 30);
+
+    if (diffMinutes < 60) {
+      return `${diffMinutes}m`;
+    } else if (diffHours < 24) {
+      return `${diffHours}h`;
+    } else if (diffDays < 7) {
+      return `${diffDays}${translations[lang].days}`;
+    } else if (diffWeeks < 4) {
+      return `${diffWeeks}${translations[lang].weeks}`;
+    } else {
+      return `${diffMonths}m`;
+    }
   }
 
 
@@ -519,6 +550,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       const modified = annotation.body[0].modified;
       const modifiedDate = new Date(modified);
       const prettyModified = modifiedDate.toLocaleString(locale);
+      const prettyTimeAgo = timeAgo(modifiedDate);
       var listItem = document.createElement("li");
       listItem.classList.add("sidebar-annotation-container");
       listItem.dataset.annotationId = annotation.id; // Assign a unique identifier
@@ -526,29 +558,21 @@ document.addEventListener("DOMContentLoaded", async function () {
       var newItem = document.querySelector(
         "[data-annotation-id='" + annotation.id + "'"
       ); //
-      var commentsNumber = annotation.body.length - 1;
+      var commentsNumber = annotation.body.filter(item => item.purpose === "commenting").length - 1;
+      var tagsNumber = annotation.body.filter(item => item.purpose === "tagging").length ?? 0;
       var listItem =
-        commentsNumber > 0
-          ? '<div class="sidebar-annotation"><div class="sidebar-annotation-content"><span class="sidebar-annotation-index"><span>' +
+       '<div class="sidebar-annotation"><div class="sidebar-annotation-content"><span class="sidebar-annotation-index"><span>' +
           annotation.index +
           "</span></span>" +
           annotation.body[0].value +
           '</div><div class="sidebar-annotation-meta"><span class="r6o-lastmodified-by">' +
           annotation.body[0].creator.name +
-          '</span><span class="r6o-lastmodified-at"><time class="" datetime="1704493363444" timeago-id="1343">' +
-          prettyModified +
-          '</time></span><span class="anno-comments-number">' +
+          '</span><span class="anno-comments-number '+ 'n' + commentsNumber +'">' +
           commentsNumber +
-          "</span></div></div>"
-          : '<div class="sidebar-annotation"><div class="sidebar-annotation-content"><span class="sidebar-annotation-index"><span>' +
-          annotation.index +
-          "</span></span>" +
-          annotation.body[0].value +
-          '</div><div class="sidebar-annotation-meta"><span class="r6o-lastmodified-by">' +
-          annotation.body[0].creator.name +
-          '</span><span class="r6o-lastmodified-at"><time class="" datetime="1704493363444" timeago-id="1343">' +
-          prettyModified +
-          "</time></span></div></div>";
+          '</span><span class="anno-tags-number '+ 'n' + tagsNumber +'">' +
+          tagsNumber +
+          '</span><span class="r6o-lastmodified-at"><time class="" style="--before-content:'+ prettyModified + '">' +
+          prettyTimeAgo + '</time></span></div></div>';
       newItem.innerHTML += listItem;
     });
   }
