@@ -35,6 +35,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   const wpuser = appConfig.user;
   const wpemail = appConfig.email;
   const wpannotate = appConfig.annotate;
+  const bypass = appConfig.bypass;
   var anno = null;
   let annotateblock = false;
   const homeUrl = window.location.protocol + "//" + window.location.host;
