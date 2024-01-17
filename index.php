@@ -52,7 +52,8 @@ function enqueue_recogito_scripts()
         'locale' => $locale,
         'user' =>  $username,
         'email' => $email,
-        'annotate' => $annotate
+        'annotate' => $annotate,
+        'bypass' => BYPASS
     ));
 }
 

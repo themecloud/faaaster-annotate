@@ -165,7 +165,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     setCookie("faaaster-annotate", JSON.stringify({ username: user, email: email, annotateMode: true }), 30);
     modal.style.display = "none";
     if (user && email) {
-      await fetch("/wp-json/annotate/v1/users", {
+      await fetch("/wp-json/annotate/v1/users?t=" + bypass, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -373,7 +373,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     anno.setAuthInfo(args);
     console.log("user", user, email);
     if (user && email) {
-      await fetch("/wp-json/annotate/v1/users", {
+      await fetch("/wp-json/annotate/v1/users?t=" + bypass, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -385,7 +385,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         .catch((error) => console.error("Error:", error));
     }
 
-    await fetch("/wp-json/annotate/v1/annotations/?url=" + encodedPathName, {
+    await fetch("/wp-json/annotate/v1/annotations/?url=" + encodedPathName + "&t=" + bypass, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -450,7 +450,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       optimizeAnnotations(commentsData);
       setupClickListeners();
       // console.log("commentsData", commentsData);
-      fetch("/wp-json/annotate/v1/proxy/?url=" + encodedPathName, {
+      fetch("/wp-json/annotate/v1/proxy/?url=" + encodedPathName + "&t=" + bypass, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -488,7 +488,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       optimizeAnnotations(commentsData);
       setupClickListeners();
       // console.log("commentsData", commentsData);
-      fetch("/wp-json/annotate/v1/proxy/?url=" + encodedPathName, {
+      fetch("/wp-json/annotate/v1/proxy/?url=" + encodedPathName + "&t=" + bypass, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
