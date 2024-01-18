@@ -139,7 +139,9 @@
     font-size: 12px;
     line-height:15px !important;
 }
-
+#annotationSidebar .sidebar-annotation-content{
+    color:black !important;
+}    
 
 
 #annotate-mode{
@@ -158,10 +160,11 @@
     box-sizing: border-box !important;
 }
 .mySwitchText{
-    width:100px;
-    font-size:14px;
-    text-align:center;
-    box-sizing: border-box;
+    width:100px !important;
+    font-size:14px !important;
+    text-align:center !important;
+    box-sizing: border-box !important;
+    color:black !important;
 }
 
 
@@ -364,7 +367,7 @@
 
 /************** CURSOR **************/
 
-[faaaster-annotate="true"] { cursor: copy; }
+#hoverPointer { cursor: copy; }
 .r6o-annotation { cursor: pointer; }
 
 /************** ANNO **************/
@@ -392,6 +395,17 @@
     transition:all 0.3s ease;
     
     letter-spacing: 0; */
+}
+
+.hover-pointer:before{
+    content:"";
+    width:calc( 100% + 20px );
+    height:calc( 100% + 20px );
+    top:-10px;
+    left:-10px;
+    position:absolute;
+    border-radius: 12px;
+    border:2px solid #2fa4a3;
 }
 .r6o-pointer:before{
     content:"";
@@ -576,8 +590,62 @@
 
 /****** MODAL ******/
 
+.faaaster-modal-intro{
+    font-family: Inter, sans-serif !important;
+    position:fixed;
+    left:50%;
+    width:250px;
+    margin-left:-160px;
+    bottom:60px;
+    background-color: #fefefe;
+    padding: 12px;
+    border: 2px solid #3fd2c6;
+    border-radius:12px;
+}
+.faaaster-modal-intro:after{
+    content: '';
+    position: absolute;
+    bottom: -10px; /* Adjust this value to position the triangle outside the modal */
+    left: 50%;
+    transform: translateX(-50%); /* Center the triangle horizontally */
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent; /* Adjust size */
+    border-right: 10px solid transparent; /* Adjust size */
+    border-top: 10px solid #3fd2c6; /* Color and size of the triangle (this is the bottom triangle) */
+}
+.modal-new{
+    font-weight:bold;
+    color: #00458b;
+    display: block;
+}
+#intro-close{
+    position: absolute;
+    font-size: 16px;
+    height: 20px;
+    width: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e2e2e2;
+    border-radius: 20px;
+    right: 6px;
+    top: 6px;
+    cursor:pointer;
+    padding: 3px 5px 5px 5px;
+}
+#intro-close:hover{
+    background:#3fd2c6;
+    color:white;
+}
+
+#introModal.faaaster-hidden{
+    display:none;
+  }
+
 /* CSS */
 #userModal {
+    font-family: Inter, sans-serif !important;
     display: none;
     position: fixed;
     z-index: 1;

@@ -13,19 +13,39 @@ add_action('wp_enqueue_scripts', 'enqueue_recogito_scripts');
 
 function enqueue_recogito_scripts()
 {   
+    // Include manager.php to access the constants
+    // include_once('/app/.include/manager.php');
+
+    // Check if cookie trial_bypass is set
+    if (!isset($_COOKIE['trial_bypass'])) {
+        return;
+    }
+
+    // Check if constants are set 
+    if(!APP_ID || !BRANCH){
+        return;
+    }
+
+    // Init variables
+    $annotate = false;
+    $username = null;
+    $email = null;
+
+    // Enqueue custom js
+    wp_enqueue_script('custom-annotations-js', plugin_dir_url(__FILE__) . 'js/custom-annotations.js', array('recogito-js'), '1.0.0', false);
 
     // Enqueue recogito.js
     wp_enqueue_script('recogito-js', plugin_dir_url(__FILE__) . 'js/recogito.min.js', array(), '1.0.0', false);
     wp_enqueue_style('recogito', plugin_dir_url(__FILE__) . 'css/recogito.min.css');
+    
+    
+    // Enqueue custom css
     wp_enqueue_style('recogito-custom', plugin_dir_url(__FILE__) . 'css/custom-annotations.css');
-    // Include manager.php to access the constants
-    include_once('/app/.include/manager.php');
+    
     // Get the current WordPress locale
     $locale = get_locale();
-    // Enqueue your custom JS file
-    wp_enqueue_script('custom-annotations-js', plugin_dir_url(__FILE__) . 'js/custom-annotations.js', array('recogito-js'), '1.0.0', false);
     
-   // error_log(isset($_COOKIE['faaaster-annotate']) || (isset($_GET['annotate']) && $_GET['annotate'] === 'true' && isset($_GET['user'])));
+    // error_log(isset($_COOKIE['faaaster-annotate']) || (isset($_GET['annotate']) && $_GET['annotate'] === 'true' && isset($_GET['user'])));
     
     // Get the current user information
     $current_user = wp_get_current_user();
@@ -37,10 +57,9 @@ function enqueue_recogito_scripts()
         $username = $current_user->user_login;
 
         // Get email
-        $email = $current_user->user_email;
-
-       
+        $email = $current_user->user_email; 
     } 
+
     // Check if 'annotate' and 'user' query parameters are set and valid
     if (isset($_GET['user']) && isset($_GET['annotate']) && isset($_GET['user'])) {
             $username = $_GET['user'];
@@ -53,7 +72,6 @@ function enqueue_recogito_scripts()
         'user' =>  $username,
         'email' => $email,
         'annotate' => $annotate,
-        'bypass' => BYPASS
     ));
 }
 
@@ -119,10 +137,9 @@ function handle_proxy_request(WP_REST_Request $request)
             'Authorization' => 'Bearer ' .  WP_API_KEY, // Add the Authorization header with the API key
         ),
     );
+
     // Make the API call
-    if (!wp_remote_post($api_url, $args)) {
-        error_log("Update event error: " . $response->get_error_message());
-    }
+    $response = wp_remote_post($api_url, $args);
 
     if (is_wp_error($response)) {
         return new WP_Error('request_failed', 'API request failed', array('status' => 500));
@@ -131,6 +148,8 @@ function handle_proxy_request(WP_REST_Request $request)
     // You may format the response as needed
     return rest_ensure_response(json_decode(wp_remote_retrieve_body($response), true));
 }
+
+// Handle users
 
 function handle_users_request(WP_REST_Request $request)
 {
@@ -153,9 +172,7 @@ function handle_users_request(WP_REST_Request $request)
         ),
     );
     // Make the API call
-    if (!wp_remote_post($api_url, $args)) {
-        error_log("Update event error: " . $response->get_error_message());
-    }
+    $response = wp_remote_post($api_url, $args);
 
     if (is_wp_error($response)) {
         return new WP_Error('request_failed', 'API request failed', array('status' => 500));
