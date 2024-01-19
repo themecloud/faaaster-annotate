@@ -31,14 +31,14 @@ function enqueue_recogito_scripts()
     $username = null;
     $email = null;
 
-    // Enqueue custom js
-    wp_enqueue_script('custom-annotations-js', plugin_dir_url(__FILE__) . 'js/custom-annotations.js', array('recogito-js'), '1.0.0', false);
+   
 
     // Enqueue recogito.js
     wp_enqueue_script('recogito-js', plugin_dir_url(__FILE__) . 'js/recogito.min.js', array(), '1.0.0', false);
     wp_enqueue_style('recogito', plugin_dir_url(__FILE__) . 'css/recogito.min.css');
     
-    
+     // Enqueue custom js
+     wp_enqueue_script('custom-annotations-js', plugin_dir_url(__FILE__) . 'js/custom-annotations.js', array('recogito-js'), '1.0.0', false);
     // Enqueue custom css
     wp_enqueue_style('recogito-custom', plugin_dir_url(__FILE__) . 'css/custom-annotations.css');
     

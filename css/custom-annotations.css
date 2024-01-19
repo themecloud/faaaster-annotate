@@ -381,22 +381,6 @@
     border:none; 
 }
 
-.r6o-pointer{
-    /* display: flex;
-    align-items: center;
-    justify-content: center;
-    width:28px;
-    height:28px;
-    border-radius: 12px;
-    z-index:99999;
-    font-family: Inter;
-    font-size:12px;
-    color:white;
-    transition:all 0.3s ease;
-    
-    letter-spacing: 0; */
-}
-
 .hover-pointer:before{
     content:"";
     width:calc( 100% + 20px );
@@ -440,26 +424,6 @@
     border:2px solid #2fa4a3;
     letter-spacing: 0;
 } 
-/* .r6o-annotation:before{
-    content:var(--after-content);
-    position:absolute;
-    bottom:-22px;
-    left:-22px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width:28px;
-    height:28px;
-    border-radius: 30px;
-    background-color: #3fd2c6;
-    z-index:99999;
-    font-family: Inter;
-    font-size:12px;
-    color:white;
-    transition:all 0.3s ease;
-    border:2px solid #2fa4a3;
-    letter-spacing: 0;
-} */
 
 #faaasterPointers{
     position:absolute;
@@ -483,6 +447,7 @@
     color:#666;
     border:none;
     margin: 0;
+    padding: 4px 10px;
 }
 .r6o-widget.comment{
     min-height:0;
@@ -533,6 +498,11 @@
     width: 11px;
     height: 11px;
 }
+
+.r6o-widget.comment{
+    display:flex;
+    flex-direction:column;
+}
 .r6o-widget.comment.editable, .r6o-widget.comment.editable .r6o-editable-text{
     background:white;
 }
@@ -563,7 +533,6 @@
     background-size: 20px;
     background-position: left 12px center;
     padding-left: 38px;
-
 }
 .r6o-widget.comment.editable{
     position:relative;
@@ -601,6 +570,7 @@
     padding: 12px;
     border: 2px solid #3fd2c6;
     border-radius:12px;
+    color:black !important;
 }
 .faaaster-modal-intro:after{
     content: '';
@@ -616,7 +586,7 @@
 }
 .modal-new{
     font-weight:bold;
-    color: #00458b;
+    color: #00458b !important;
     display: block;
 }
 #intro-close{
@@ -633,10 +603,11 @@
     top: 6px;
     cursor:pointer;
     padding: 3px 5px 5px 5px;
+    color:black !important;
 }
 #intro-close:hover{
     background:#3fd2c6;
-    color:white;
+    color:white !important;
 }
 
 #introModal.faaaster-hidden{
@@ -668,13 +639,16 @@
     font-size:14px;
     padding: 6px;
     border-radius: 6px;
-    border-color: #a8a8a8;
+    border: 1px solid #a8a8a8 !important;
     box-shadow: none;
     font-size:14px !important;
     font-family: Inter, sans-serif !important;
     appearance: none;
     -moz-appearance: none;
     -webkit-appearance: none;
+  }
+  #userModal input:focus{
+    border: 1px solid #3fd2c6 !important;
   }
 
   #userModal form{

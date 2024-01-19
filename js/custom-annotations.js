@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   const translations = {
     fr: {
       introText: "Laissez des annotations directement sur le site !",
-      new: "Nouveau",
+      new: "Nouveau !",
       helpText: "Cliquez un bloc de texte pour ajouter un commentaire. Cliquez sur un commentaire ci dessous pour le localiser dans la page.",
       navigate: "Naviguer",
       annotate: "Annoter",
@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     },
     en: {
       introText: "Laissez des annotations directement sur le site !",
-      new: "Nouveau",
+      new: "New!",
       helpText: "Click text to add a comment. Click on a comment below to locate it on the page.",
       navigate: "Navigate",
       annotate: "Annotate",
@@ -302,9 +302,9 @@ document.addEventListener("DOMContentLoaded", async function () {
                       ? true
                       : false;
 
-    // console.log("triggerAnno", triggerAnno, element);
-    // console.log("clickThrough", clickThrough);
-    // console.log("trigger", triggerAnno);
+    console.log("triggerAnno", triggerAnno, element);
+    console.log("clickThrough", clickThrough);
+    console.log("trigger", triggerAnno);
     return [triggerAnno, clickThrough];
   }
 
@@ -826,6 +826,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   document.addEventListener(
     "mouseup",
     function (event) {
+
       // Prevent propagation on interface
       if (event.target.closest("#actionBar") || event.target.closest(".r6o-editor") || event.target.classList.contains("sidebar-annotation-container")) {
         event.stopPropagation();
@@ -836,6 +837,11 @@ document.addEventListener("DOMContentLoaded", async function () {
       if (!annotateMode || event.target.id == hoverPointer) {
         event.stopPropagation();
         return;
+      }
+
+      // Prevent propagation if trigger false and not a pointer nor annotation
+      if (trigger(event.target)[0] == false && !event.target.classList.contains('r6o-annotation') && !event.target.classList.contains('r6o-pointer')) {
+        event.stopPropagation();
       }
     },
     true
