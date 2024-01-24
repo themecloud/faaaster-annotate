@@ -302,9 +302,9 @@ document.addEventListener("DOMContentLoaded", async function () {
                       ? true
                       : false;
 
-    console.log("triggerAnno", triggerAnno, element);
-    console.log("clickThrough", clickThrough);
-    console.log("trigger", triggerAnno);
+    // console.log("triggerAnno", triggerAnno, element);
+    // console.log("clickThrough", clickThrough);
+    // console.log("trigger", triggerAnno);
     return [triggerAnno, clickThrough];
   }
 

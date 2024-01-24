@@ -84,6 +84,9 @@
     min-height: 100vh;
     border-left: 1px solid #ccc;
 }
+.sidebar-annotation-container{
+    margin: 0 !important;
+}
 .sidebar-annotation-container.anno-selected{
     background: #f8fafd;
 }
@@ -456,11 +459,27 @@
     color:#666;
 } 
 .r6o-editable-text{
-    color:black;
+    font-family: Inter, sans-serif !important;
+    color:black !important;
 }
-.r6o-btn{
-    background-color: #00458b;
+
+.r6o-btn {
+    border-radius: 5px !important;
+    padding: 6px 18px !important;
+    background: #00458b !important;
+    color: white !important;
+    font-family: Inter, sans-serif !important;
+    line-height: 18px !important;
+    font-size: 14px !important;
+    font-weight:400 !important;
+    transition: background 0.3s ease;
+    border:none !important;
 }
+.r6o-btn:hover {
+    background:#3fd2c6 !important; 
+    border:none !important;
+}
+
 .r6o-editor{
     margin-top: 12px;
     margin-left: -31px;
@@ -506,9 +525,7 @@
 .r6o-widget.comment.editable, .r6o-widget.comment.editable .r6o-editable-text{
     background:white;
 }
-.r6o-btn {
-    border-radius: 5px;
-}
+
 
 .r6o-widget.r6o-tag ul.r6o-taglist li{
     border-radius: 15px;
@@ -571,6 +588,7 @@
     border: 2px solid #3fd2c6;
     border-radius:12px;
     color:black !important;
+    z-index: 999999;
 }
 .faaaster-modal-intro:after{
     content: '';
