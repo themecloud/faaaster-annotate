@@ -9,29 +9,32 @@ document.addEventListener("DOMContentLoaded", async function () {
     fr: {
       introText: "Laissez des annotations directement sur le site !",
       new: "Nouveau !",
-      helpText: "Cliquez un bloc de texte pour ajouter un commentaire. Cliquez sur un commentaire ci dessous pour le localiser dans la page.",
+      helpText:
+        "Cliquez un bloc de texte pour ajouter un commentaire. Cliquez sur un commentaire ci dessous pour le localiser dans la page.",
       navigate: "Naviguer",
       annotate: "Annoter",
-      loginText: "Veuillez choisir un identifiant et saisir votre email pour pouvoir annoter le site.",
+      loginText:
+        "Veuillez choisir un identifiant et saisir votre email pour pouvoir annoter le site.",
       username: "Identifiant",
       validate: "Valider",
       days: "j",
-      weeks: "s"
+      weeks: "s",
     },
     en: {
       introText: "Laissez des annotations directement sur le site !",
       new: "New!",
-      helpText: "Click text to add a comment. Click on a comment below to locate it on the page.",
+      helpText:
+        "Click text to add a comment. Click on a comment below to locate it on the page.",
       navigate: "Navigate",
       annotate: "Annotate",
-      loginText: "Please choose a username and enter your email to be able to annotate the site.",
+      loginText:
+        "Please choose a username and enter your email to be able to annotate the site.",
       username: "Username",
       validate: "Validate",
       days: "d",
       weeks: "w",
-    }
+    },
   };
-
 
   // Access applicationId and instanceId from PHP
   var locale = appConfig.locale.substring(3, 5);
@@ -52,7 +55,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     wpAdminBar = document.getElementById("wpadminbar").getBoundingClientRect();
     wpAdminBarHeight = wpAdminBar.height;
   }
-
 
   /****** TIME AGO ******/
   function timeAgo(dateString) {
@@ -79,7 +81,6 @@ document.addEventListener("DOMContentLoaded", async function () {
       return `${diffMonths}m`;
     }
   }
-
 
   /****** MANAGE COOKIES ******/
 
@@ -116,19 +117,41 @@ document.addEventListener("DOMContentLoaded", async function () {
   /****** INIT VARIABLES ******/
 
   // Get user and annotateMode from cookie
-  let faaasterAnnotate = getCookieValue("faaaster-annotate") ? JSON.parse(getCookieValue("faaaster-annotate")) : { username: undefined, annotateMode: false, showIntro: true };
+  let faaasterAnnotate = getCookieValue("faaaster-annotate")
+    ? JSON.parse(getCookieValue("faaaster-annotate"))
+    : { username: undefined, annotateMode: false, showIntro: true };
 
   // Init user and annotateMode
-  let annotateMode = wpannotate == "true" ? true : wpannotate == "false" ? false : faaasterAnnotate.annotateMode;
-  let user = wpuser ? wpuser : faaasterAnnotate.username ? faaasterAnnotate.username : false;
-  let email = wpemail ? wpemail : faaasterAnnotate.email ? faaasterAnnotate.email : false;
+  let annotateMode =
+    wpannotate == "true"
+      ? true
+      : wpannotate == "false"
+        ? false
+        : faaasterAnnotate.annotateMode;
+  let user = wpuser
+    ? wpuser
+    : faaasterAnnotate.username
+      ? faaasterAnnotate.username
+      : false;
+  let email = wpemail
+    ? wpemail
+    : faaasterAnnotate.email
+      ? faaasterAnnotate.email
+      : false;
   let showIntro = faaasterAnnotate.showIntro ?? "true";
-  setCookie("faaaster-annotate", JSON.stringify({ username: user, email: email, annotateMode: annotateMode, showIntro: showIntro }), 30);
-
+  setCookie(
+    "faaaster-annotate",
+    JSON.stringify({
+      username: user,
+      email: email,
+      annotateMode: annotateMode,
+      showIntro: showIntro,
+    }),
+    30
+  );
 
   // Init body for annotations
   document.body.id = "myCustomId";
-
 
   /******* ADD INTERFACE ******/
 
@@ -137,7 +160,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   pointers.id = "faaasterPointers";
   targetElement.appendChild(pointers);
 
-  // Add hover pointer to Pointers 
+  // Add hover pointer to Pointers
   var hoverPointer = document.createElement("div");
   hoverPointer.id = "hoverPointer";
   hoverPointer.classList.add("hover-pointer");
@@ -150,14 +173,26 @@ document.addEventListener("DOMContentLoaded", async function () {
   // Add Login Modal
   var modal = document.createElement("div");
   modal.id = "userModal";
-  const modalContent = '<div class="faaaster-modal-content"><p>' + translations[lang].loginText + '</p><form id="loginForm"><label for="username">' + translations[lang].username + '</label><input type="text" id="username" name="username"><label for="password">Email</label><input type="email" id="email" name="email"><input class="modalButton" type="submit" value="' + translations[lang].validate + '"></form></div>';
+  const modalContent =
+    '<div class="faaaster-modal-content"><p>' +
+    translations[lang].loginText +
+    '</p><form id="loginForm"><label for="username">' +
+    translations[lang].username +
+    '</label><input type="text" id="username" name="username"><label for="password">Email</label><input type="email" id="email" name="email"><input class="modalButton" type="submit" value="' +
+    translations[lang].validate +
+    '"></form></div>';
   modal.innerHTML += modalContent;
   targetElement.appendChild(modal);
 
   // Add Intro Modal
   var introModal = document.createElement("div");
   introModal.id = "introModal";
-  const introModalContent = '<div class="faaaster-modal-intro"><span class="modal-new">' + translations[lang].new + '</span><span id="intro-close">&times;</span><span>' + translations[lang].introText + '</span></div>';
+  const introModalContent =
+    '<div class="faaaster-modal-intro"><span class="modal-new">' +
+    translations[lang].new +
+    '</span><span id="intro-close">&times;</span><span>' +
+    translations[lang].introText +
+    "</span></div>";
   introModal.innerHTML += introModalContent;
   targetElement.appendChild(introModal);
 
@@ -166,7 +201,16 @@ document.addEventListener("DOMContentLoaded", async function () {
   closeIntro.addEventListener("click", function () {
     introModal.classList.add("faaaster-hidden");
     showIntro = "false";
-    setCookie("faaaster-annotate", JSON.stringify({ username: user, email: email, annotateMode: true, showIntro: "false" }), 30);
+    setCookie(
+      "faaaster-annotate",
+      JSON.stringify({
+        username: user,
+        email: email,
+        annotateMode: true,
+        showIntro: "false",
+      }),
+      30
+    );
   });
   if (showIntro === "false") {
     introModal.classList.add("faaaster-hidden");
@@ -186,7 +230,16 @@ document.addEventListener("DOMContentLoaded", async function () {
     let email = document.getElementById("email").value;
     const args = { id: email, displayName: user };
     anno.setAuthInfo(args);
-    setCookie("faaaster-annotate", JSON.stringify({ username: user, email: email, annotateMode: true, showIntro: showIntro }), 30);
+    setCookie(
+      "faaaster-annotate",
+      JSON.stringify({
+        username: user,
+        email: email,
+        annotateMode: true,
+        showIntro: showIntro,
+      }),
+      30
+    );
     modal.style.display = "none";
     if (user && email) {
       await fetch("/wp-json/annotate/v1/users", {
@@ -202,16 +255,16 @@ document.addEventListener("DOMContentLoaded", async function () {
         })
         .catch((error) => console.error("Error:", error));
     }
-  }
+  };
 
   // Add ActionBar
   var actionBar = document.createElement("div");
   actionBar.id = "actionBar";
   //const actionBarContent = '<div id="annotateToggle" class="actionBarButton"></div><div id="navigateToggle" class="actionBarButton"></div><div class="actionBarButton" id="shareModal"></div>';
-  const actionBarContent = '<div id="annotateToggle" class="actionBarButton"></div><div id="navigateToggle" class="actionBarButton"></div>';
+  const actionBarContent =
+    '<div id="annotateToggle" class="actionBarButton"></div><div id="navigateToggle" class="actionBarButton"></div>';
   actionBar.innerHTML += actionBarContent;
   targetElement.appendChild(actionBar);
-
 
   // Initialize actionBar
   var annotateToggle = document.getElementById("annotateToggle");
@@ -313,7 +366,13 @@ document.addEventListener("DOMContentLoaded", async function () {
     var sidebar = document.createElement("div");
 
     sidebar.innerHTML +=
-      "<div id='sidebar-header'><div id='sidebar-title'><h2>Annotations</h2></div><div id='sidebar-help'><h4>" + translations[lang].helpText + "</h4></div></div><ul id='sidebar-annotations'></ul><div id='annotate-mode'><span class='mySwitchText'>Naviguer</span><input type='checkbox' id='mySwitch' /><label for='mySwitch' id='mySwitchLabel'>" + translations[lang].navigate + "</label><span class='mySwitchText'>" + translations[lang].annotate + "</span></div><div id='anno-minimize'><svg stroke='currentColor' fill='currentColor' stroke-width='0' viewBox='0 0 256 512' class='jss590' height='1em' width='1em' xmlns='http://www.w3.org/2000/svg'><path d='M224.3 273l-136 136c-9.4 9.4-24.6 9.4-33.9 0l-22.6-22.6c-9.4-9.4-9.4-24.6 0-33.9l96.4-96.4-96.4-96.4c-9.4-9.4-9.4-24.6 0-33.9L54.3 103c9.4-9.4 24.6-9.4 33.9 0l136 136c9.5 9.4 9.5 24.6.1 34z'></path></svg></div>";
+      "<div id='sidebar-header'><div id='sidebar-title'><h2>Annotations</h2></div><div id='sidebar-help'><h4>" +
+      translations[lang].helpText +
+      "</h4></div></div><ul id='sidebar-annotations'></ul><div id='annotate-mode'><span class='mySwitchText'>Naviguer</span><input type='checkbox' id='mySwitch' /><label for='mySwitch' id='mySwitchLabel'>" +
+      translations[lang].navigate +
+      "</label><span class='mySwitchText'>" +
+      translations[lang].annotate +
+      "</span></div><div id='anno-minimize'><svg stroke='currentColor' fill='currentColor' stroke-width='0' viewBox='0 0 256 512' class='jss590' height='1em' width='1em' xmlns='http://www.w3.org/2000/svg'><path d='M224.3 273l-136 136c-9.4 9.4-24.6 9.4-33.9 0l-22.6-22.6c-9.4-9.4-9.4-24.6 0-33.9l96.4-96.4-96.4-96.4c-9.4-9.4-9.4-24.6 0-33.9L54.3 103c9.4-9.4 24.6-9.4 33.9 0l136 136c9.5 9.4 9.5 24.6.1 34z'></path></svg></div>";
     sidebar.id = "annotationSidebar";
 
     // // Create a list inside the sidebar
@@ -333,9 +392,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
     mySwitch.checked = annotateMode;
 
-
     mySwitch.addEventListener("change", function () {
-
       // Update the global variable based on the checkbox state
       annotateMode = this.checked;
       if (annotateMode == false) {
@@ -346,9 +403,18 @@ document.addEventListener("DOMContentLoaded", async function () {
         });
         // Hide 'r6o-pointers'
         const pointers = document.getElementById("faaasterPointers");
-        pointers.classList.add('faaaster-hidden');
-
-        setCookie("faaaster-annotate", JSON.stringify({ username: user, email: email, annotateMode: false, showintro: showintro }), 30);
+        pointers.classList.add("faaaster-hidden");
+        console.log("set cookie annotateMode false");
+        setCookie(
+          "faaaster-annotate",
+          JSON.stringify({
+            username: user,
+            email: email,
+            annotateMode: false,
+            showIntro: showIntro,
+          }),
+          30
+        );
         annotateToggle.classList.remove("selected");
         navigateToggle.classList.add("selected");
       } else {
@@ -364,11 +430,19 @@ document.addEventListener("DOMContentLoaded", async function () {
         });
         // Show 'r6o-pointers'
         const pointers = document.getElementById("faaasterPointers");
-        pointers.classList.remove('faaaster-hidden');
-        setCookie("faaaster-annotate", JSON.stringify({ username: user, email: email, annotateMode: true, showintro: showintro }), 30);
+        pointers.classList.remove("faaaster-hidden");
+        setCookie(
+          "faaaster-annotate",
+          JSON.stringify({
+            username: user,
+            email: email,
+            annotateMode: true,
+            showIntro: showIntro,
+          }),
+          30
+        );
         annotateToggle.classList.add("selected");
         navigateToggle.classList.remove("selected");
-
       }
     });
 
@@ -521,7 +595,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
     // Hide 'r6o-pointers'
     const pointers = document.getElementById("faaasterPointers");
-    pointers.classList.add('faaaster-hidden');
+    pointers.classList.add("faaaster-hidden");
     toggleSidebar();
   }
   // Manage custom cursor
@@ -534,16 +608,16 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
     if (trigger(event.target)[0]) {
       // Step 1: Select all elements with the 'faaaster-annotate' attribute
-      const elements = document.querySelectorAll('[faaaster-annotate]');
+      const elements = document.querySelectorAll("[faaaster-annotate]");
 
       // Step 2: Iterate through the selected elements
-      elements.forEach(el => {
+      elements.forEach((el) => {
         // Step 3: Remove the 'faaaster-annotate' attribute from each element
         if (el != event.target) {
-          el.removeAttribute('faaaster-annotate');
+          el.removeAttribute("faaaster-annotate");
         }
       });
-      event.target.setAttribute('faaaster-annotate', true);
+      event.target.setAttribute("faaaster-annotate", true);
       const element = event.target;
 
       // Get position and size of the hovered element
@@ -555,30 +629,33 @@ document.addEventListener("DOMContentLoaded", async function () {
       const pointerElement = document.getElementById("hoverPointer");
 
       // Set style to position the pointer element at the same place
-      pointerElement.style.position = fixedPosition ? 'fixed' : 'absolute';
-      pointerElement.style.left = rect.left + (fixedPosition ? 0 : window.scrollX) + 'px';
-      pointerElement.style.top = rect.top + (fixedPosition ? 0 : window.scrollY - wpAdminBarHeight) + 'px';
-      pointerElement.style.width = rect.width + 'px';
-      pointerElement.style.height = rect.height + 'px';
+      pointerElement.style.position = fixedPosition ? "fixed" : "absolute";
+      pointerElement.style.left =
+        rect.left + (fixedPosition ? 0 : window.scrollX) + "px";
+      pointerElement.style.top =
+        rect.top +
+        (fixedPosition ? 0 : window.scrollY - wpAdminBarHeight) +
+        "px";
+      pointerElement.style.width = rect.width + "px";
+      pointerElement.style.height = rect.height + "px";
 
       // Add click event listener to the pointer element
-      pointerElement.addEventListener('click', function (event) {
-
-        const element = document.querySelector('[faaaster-annotate]');
+      pointerElement.addEventListener("click", function (event) {
+        const element = document.querySelector("[faaaster-annotate]");
 
         // Simulate a mousedown on the annotationElement
-        const downEvent = new MouseEvent('mousedown', {
+        const downEvent = new MouseEvent("mousedown", {
           bubbles: true,
           cancelable: true,
-          view: window
+          view: window,
         });
         element.dispatchEvent(downEvent);
 
         // Simulate a mousedown on the annotationElement
-        const upEvent = new MouseEvent('mouseup', {
+        const upEvent = new MouseEvent("mouseup", {
           bubbles: true,
           cancelable: true,
-          view: window
+          view: window,
         });
         element.dispatchEvent(upEvent);
       });
@@ -609,8 +686,12 @@ document.addEventListener("DOMContentLoaded", async function () {
       var newItem = document.querySelector(
         "[data-annotation-id='" + annotation.id + "'"
       ); //
-      var commentsNumber = annotation.body.filter(item => item.purpose === "commenting").length - 1;
-      var tagsNumber = annotation.body.filter(item => item.purpose === "tagging").length ?? 0;
+      var commentsNumber =
+        annotation.body.filter((item) => item.purpose === "commenting").length -
+        1;
+      var tagsNumber =
+        annotation.body.filter((item) => item.purpose === "tagging").length ??
+        0;
       var listItem =
         '<div class="sidebar-annotation"><div class="sidebar-annotation-content"><span class="sidebar-annotation-index"><span>' +
         annotation.index +
@@ -618,12 +699,21 @@ document.addEventListener("DOMContentLoaded", async function () {
         annotation.body[0].value +
         '</div><div class="sidebar-annotation-meta"><span class="r6o-lastmodified-by">' +
         annotation.body[0].creator.name +
-        '</span><span class="anno-comments-number ' + 'n' + commentsNumber + '">' +
+        '</span><span class="anno-comments-number ' +
+        "n" +
         commentsNumber +
-        '</span><span class="anno-tags-number ' + 'n' + tagsNumber + '">' +
+        '">' +
+        commentsNumber +
+        '</span><span class="anno-tags-number ' +
+        "n" +
         tagsNumber +
-        '</span><span class="r6o-lastmodified-at"><time class="" style="--before-content:' + prettyModified + '">' +
-        prettyTimeAgo + '</time></span></div></div>';
+        '">' +
+        tagsNumber +
+        '</span><span class="r6o-lastmodified-at"><time class="" style="--before-content:' +
+        prettyModified +
+        '">' +
+        prettyTimeAgo +
+        "</time></span></div></div>";
       newItem.innerHTML += listItem;
     });
   }
@@ -716,7 +806,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   // Function to check if an element or any of its parents have position fixed
   function isPositionFixed(element) {
     while (element) {
-      if (window.getComputedStyle(element).position === 'fixed') {
+      if (window.getComputedStyle(element).position === "fixed") {
         return true;
       }
       element = element.parentElement;
@@ -726,10 +816,9 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   // Create pointers
   function createAndPositionPointer(annotationElement, index, id) {
-
     // Create a new element with class 'r6o-pointer'
-    const pointerElement = document.createElement('div');
-    pointerElement.className = 'r6o-pointer';
+    const pointerElement = document.createElement("div");
+    pointerElement.className = "r6o-pointer";
 
     // Get position and size of the annotation element
     const rect = annotationElement.getBoundingClientRect();
@@ -738,38 +827,37 @@ document.addEventListener("DOMContentLoaded", async function () {
     const fixedPosition = isPositionFixed(annotationElement);
 
     // Set style to position the pointer element at the same place
-    pointerElement.style.position = fixedPosition ? 'fixed' : 'absolute';
-    pointerElement.style.left = rect.left + (fixedPosition ? 0 : window.scrollX) + 'px';
-    pointerElement.style.top = rect.top + (fixedPosition ? 0 : window.scrollY - wpAdminBarHeight) + 'px';
-    pointerElement.style.width = rect.width + 'px';
-    pointerElement.style.height = rect.height + 'px';
-    pointerElement.style.cursor = 'pointer';
-    pointerElement.setAttribute('pointer-id', id);
-    pointerElement.style.setProperty(
-      "--after-content",
-      '"' + index + '"'
-    );
+    pointerElement.style.position = fixedPosition ? "fixed" : "absolute";
+    pointerElement.style.left =
+      rect.left + (fixedPosition ? 0 : window.scrollX) + "px";
+    pointerElement.style.top =
+      rect.top + (fixedPosition ? 0 : window.scrollY - wpAdminBarHeight) + "px";
+    pointerElement.style.width = rect.width + "px";
+    pointerElement.style.height = rect.height + "px";
+    pointerElement.style.cursor = "pointer";
+    pointerElement.setAttribute("pointer-id", id);
+    pointerElement.style.setProperty("--after-content", '"' + index + '"');
     // Add click event listener to the pointer element
-    pointerElement.addEventListener('click', function (event) {
-
-
+    pointerElement.addEventListener("click", function (event) {
       const element = document.querySelector(
-        ".r6o-annotation[data-id='" + event.target.getAttribute('pointer-id') + "'"
+        ".r6o-annotation[data-id='" +
+        event.target.getAttribute("pointer-id") +
+        "'"
       );
 
       // Simulate a mousedown on the annotationElement
-      const downEvent = new MouseEvent('mousedown', {
+      const downEvent = new MouseEvent("mousedown", {
         bubbles: true,
         cancelable: true,
-        view: window
+        view: window,
       });
       element.dispatchEvent(downEvent);
 
       // Simulate a mouseup on the annotationElement
-      const upEvent = new MouseEvent('mouseup', {
+      const upEvent = new MouseEvent("mouseup", {
         bubbles: true,
         cancelable: true,
-        view: window
+        view: window,
       });
       element.dispatchEvent(upEvent);
     });
@@ -826,9 +914,12 @@ document.addEventListener("DOMContentLoaded", async function () {
   document.addEventListener(
     "mouseup",
     function (event) {
-
       // Prevent propagation on interface
-      if (event.target.closest("#actionBar") || event.target.closest(".r6o-editor") || event.target.classList.contains("sidebar-annotation-container")) {
+      if (
+        event.target.closest("#actionBar") ||
+        event.target.closest(".r6o-editor") ||
+        event.target.classList.contains("sidebar-annotation-container")
+      ) {
         event.stopPropagation();
         return;
       }
@@ -840,7 +931,11 @@ document.addEventListener("DOMContentLoaded", async function () {
       }
 
       // Prevent propagation if trigger false and not a pointer nor annotation
-      if (trigger(event.target)[0] == false && !event.target.classList.contains('r6o-annotation') && !event.target.classList.contains('r6o-pointer')) {
+      if (
+        trigger(event.target)[0] == false &&
+        !event.target.classList.contains("r6o-annotation") &&
+        !event.target.classList.contains("r6o-pointer")
+      ) {
         event.stopPropagation();
       }
     },
@@ -857,10 +952,10 @@ document.addEventListener("DOMContentLoaded", async function () {
     if (event.target.id == "annotateToggle" && annotateMode == false) {
       navigateToggle.classList.remove("selected");
       event.target.classList.add("selected");
-      const newEvent = new MouseEvent('click', {
+      const newEvent = new MouseEvent("click", {
         bubbles: true,
         cancelable: true,
-        view: window
+        view: window,
       });
       mySwitch.dispatchEvent(newEvent);
       const sideBAr = document.getElementById("annotationSidebar");
@@ -871,10 +966,10 @@ document.addEventListener("DOMContentLoaded", async function () {
     if (event.target.id == "navigateToggle" && annotateMode == true) {
       annotateToggle.classList.remove("selected");
       event.target.classList.add("selected");
-      const newEvent = new MouseEvent('click', {
+      const newEvent = new MouseEvent("click", {
         bubbles: true,
         cancelable: true,
-        view: window
+        view: window,
       });
 
       mySwitch.dispatchEvent(newEvent);
