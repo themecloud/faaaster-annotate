@@ -13,7 +13,7 @@
     display:flex;
     justify-content:space-around;
     border-radius:22px;
-    width:90px;
+    width:150px;
     position:fixed;
     bottom:10px;
     left:50%;
@@ -50,11 +50,12 @@
     background-image:url(../images/0472-bubbles.svg);
 }
 #navigateToggle{
-    
     background-image:url(../images/0166-eye.svg);
 }
+#disableToggle{
+    background-image:url(../images/0811-cross.svg);
+}
 #shareModal{
-   
     background-image:url(../images/0801-share2.svg);
 }
 
@@ -80,7 +81,7 @@
 }
 #annotationSidebar ul{
     list-style: none;
-    margin: 0;
+    margin: 0 !important;
     min-height: 100vh;
     border-left: 1px solid #ccc;
 }
@@ -144,7 +145,7 @@
 }
 #annotationSidebar .sidebar-annotation-content{
     color:black !important;
-}    
+}
 
 
 #annotate-mode{
@@ -244,7 +245,7 @@
 
 #sidebar-annotations{
     padding:0 20px;
-    
+
 }
 .sidebar-annotation{
     padding : 10px 0;
@@ -263,11 +264,11 @@
     padding: 4px 8px;
     border-radius: 6px;
 }
-.sidebar-annotation-index{ 
+.sidebar-annotation-index{
     display:inline-block;
     margin-right:5px;
 }
-.sidebar-annotation-index span{ 
+.sidebar-annotation-index span{
     background-color: #00458b;
     display:flex;
     width:18px;
@@ -381,7 +382,7 @@
 .r6o-annotation{
     position:relative;
     background-color: transparent;
-    border:none; 
+    border:none;
 }
 
 .hover-pointer:before{
@@ -426,7 +427,7 @@
     transition:all 0.3s ease;
     border:2px solid #2fa4a3;
     letter-spacing: 0;
-} 
+}
 
 #faaasterPointers{
     position:absolute;
@@ -457,7 +458,7 @@
 }
 .r6o-widget.comment .r6o-lastmodified *, .r6o-widget.comment .r6o-lastmodified, .r6o-widget.comment .r6o-lastmodified .r6o-lastmodified-at{
     color:#666;
-} 
+}
 .r6o-editable-text{
     font-family: Inter, sans-serif !important;
     color:black !important;
@@ -476,7 +477,7 @@
     border:none !important;
 }
 .r6o-btn:hover {
-    background:#3fd2c6 !important; 
+    background:#3fd2c6 !important;
     border:none !important;
 }
 
@@ -500,7 +501,7 @@
 }
 .r6o-widget.comment .r6o-arrow-down{
     display:none;
-} 
+}
 .r6o-widget.comment .r6o-editable-text, .r6o-widget.comment .r6o-readonly-comment{
     color:black;
 
@@ -689,13 +690,13 @@
     transition: all 0.3s ease;
     color:white !important;
     font-size:14px !important;
-    
+
 }
-  
+
   #userModal.faaaster-hidden{
     display:none;
   }
-  
+
   .faaaster-modal-content {
     background-color: #fefefe;
     margin: 15% auto;
@@ -705,7 +706,7 @@
     border-radius:12px;
     position:relative;
   }
-  
+
   .faaaster-close {
     color: #aaa;
     float: right;
@@ -715,7 +716,7 @@
     top:10px;
     right:10px;
   }
-  
+
   .faaaster-close:hover,
   .faaaster-close:focus {
     color: black;

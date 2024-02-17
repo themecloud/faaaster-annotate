@@ -12,17 +12,21 @@
 add_action('wp_enqueue_scripts', 'enqueue_recogito_scripts');
 
 function enqueue_recogito_scripts()
-{   
-    // Include manager.php to access the constants
-    // include_once('/app/.include/manager.php');
+{
 
     // Check if cookie trial_bypass is set
     if (!isset($_COOKIE['trial_bypass'])) {
         return;
     }
 
-    // Check if constants are set 
-    if(!APP_ID || !BRANCH){
+    // Check if cookie faaaster-annotate object contains disabled and disabled= true
+    if (isset($_COOKIE['faaaster-annotate']) && $_COOKIE['faaaster-annotate']->disabled === true) {
+        return;
+    }
+
+
+    // Check if constants are set
+    if (!APP_ID || !BRANCH) {
         return;
     }
 
@@ -31,40 +35,40 @@ function enqueue_recogito_scripts()
     $username = null;
     $email = null;
 
-   
+
 
     // Enqueue recogito.js
     wp_enqueue_script('recogito-js', plugin_dir_url(__FILE__) . 'js/recogito.min.js', array(), '1.0.0', false);
     wp_enqueue_style('recogito', plugin_dir_url(__FILE__) . 'css/recogito.min.css');
-    
-     // Enqueue custom js
-     wp_enqueue_script('custom-annotations-js', plugin_dir_url(__FILE__) . 'js/custom-annotations.js', array('recogito-js'), '1.0.0', false);
+
+    // Enqueue custom js
+    wp_enqueue_script('custom-annotations-js', plugin_dir_url(__FILE__) . 'js/custom-annotations.js', array('recogito-js'), '1.0.0', false);
     // Enqueue custom css
     wp_enqueue_style('recogito-custom', plugin_dir_url(__FILE__) . 'css/custom-annotations.css');
-    
+
     // Get the current WordPress locale
     $locale = get_locale();
-    
+
     // error_log(isset($_COOKIE['faaaster-annotate']) || (isset($_GET['annotate']) && $_GET['annotate'] === 'true' && isset($_GET['user'])));
-    
+
     // Get the current user information
     $current_user = wp_get_current_user();
 
     // Check if a user is logged in
-    if ( $current_user->exists() ) {
+    if ($current_user->exists()) {
         // User is logged in
         // Get username
         $username = $current_user->user_login;
 
         // Get email
-        $email = $current_user->user_email; 
-    } 
+        $email = $current_user->user_email;
+    }
 
     // Check if 'annotate' and 'user' query parameters are set and valid
     if (isset($_GET['user']) && isset($_GET['annotate']) && isset($_GET['user'])) {
-            $username = $_GET['user'];
-            $email = $_GET['email']; 
-            $annotate = $_GET['annotate'];
+        $username = $_GET['user'];
+        $email = $_GET['email'];
+        $annotate = $_GET['annotate'];
     }
     // Localize script to pass data from PHP to JavaScript
     wp_localize_script('custom-annotations-js', 'appConfig', array(
@@ -83,7 +87,7 @@ function fetch_annotations(WP_REST_Request $request)
     // Include manager.php to access the constants
     include_once('/app/.include/manager.php');
     // Get existing annotations from the API
-    $api_url = 'https://app.faaaster.io/api/applications/' . APP_ID . '/instances/' . BRANCH . '/annotate?url='. $url;
+    $api_url = 'https://app.faaaster.io/api/applications/' . APP_ID . '/instances/' . BRANCH . '/annotate?url=' . $url;
 
     // Define the request arguments
     $args = array(

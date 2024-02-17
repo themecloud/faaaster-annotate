@@ -262,13 +262,14 @@ document.addEventListener("DOMContentLoaded", async function () {
   actionBar.id = "actionBar";
   //const actionBarContent = '<div id="annotateToggle" class="actionBarButton"></div><div id="navigateToggle" class="actionBarButton"></div><div class="actionBarButton" id="shareModal"></div>';
   const actionBarContent =
-    '<div id="annotateToggle" class="actionBarButton"></div><div id="navigateToggle" class="actionBarButton"></div>';
+    '<div id="annotateToggle" class="actionBarButton"></div><div id="navigateToggle" class="actionBarButton"></div><div id="disableToggle" class="actionBarButton"></div>';
   actionBar.innerHTML += actionBarContent;
   targetElement.appendChild(actionBar);
 
   // Initialize actionBar
   var annotateToggle = document.getElementById("annotateToggle");
   var navigateToggle = document.getElementById("navigateToggle");
+  var disableToggle = document.getElementById("disableToggle");
   if (annotateMode) {
     annotateToggle.classList.add("selected");
   } else {
@@ -962,6 +963,8 @@ document.addEventListener("DOMContentLoaded", async function () {
       if (sideBAr.classList.contains("sideBarHidden")) {
         sideBAr.classList.remove("sideBarHidden");
       }
+    }
+    if (event.target.id == "disableToggle" && annotateMode == true) {
     }
     if (event.target.id == "navigateToggle" && annotateMode == true) {
       annotateToggle.classList.remove("selected");
