@@ -13,28 +13,35 @@ add_action('wp_enqueue_scripts', 'enqueue_recogito_scripts');
 
 function enqueue_recogito_scripts()
 {
+    // Init variables
+    $annotate = false;
+    $username = null;
+    $email = null;
+    $disabled = null;
 
     // Check if cookie trial_bypass is set
     if (!isset($_COOKIE['trial_bypass'])) {
         return;
     }
-
-    // Check if cookie faaaster-annotate object contains disabled and disabled= true
-    if (isset($_COOKIE['faaaster-annotate']) && $_COOKIE['faaaster-annotate']->disabled === true) {
-        return;
+    if (isset($_COOKIE['faaaster-annotate']) ){       
+        $faaaster_annotate_cookie=$_COOKIE['faaaster-annotate'];
+        $faaaster_annotate= json_decode(stripslashes($faaaster_annotate_cookie));
+        $disabled=$faaaster_annotate->disabled;
+        if ($disabled == true && !isset($_GET['t'])){
+            return;
+        }
     }
 
+    // Toggle disabled if request is annotation link
+    if (isset($_GET['t']) && isset($_COOKIE['faaaster-annotate'])) {
+        $faaaster_annotate = $_COOKIE['faaaster-annotate'];
+        $disabled = false;
+    }  
 
     // Check if constants are set
     if (!APP_ID || !BRANCH) {
         return;
     }
-
-    // Init variables
-    $annotate = false;
-    $username = null;
-    $email = null;
-
 
 
     // Enqueue recogito.js
@@ -76,6 +83,7 @@ function enqueue_recogito_scripts()
         'user' =>  $username,
         'email' => $email,
         'annotate' => $annotate,
+        'disabled' => $disabled,
     ));
 }
 
@@ -98,7 +106,7 @@ function fetch_annotations(WP_REST_Request $request)
     // Make the API call
     $response = wp_remote_get($api_url, $args);
     if (!$response) {
-        error_log("Update event error: " . $response->get_error_message());
+        error_log("Update event error");
     }
 
     if (is_wp_error($response)) {

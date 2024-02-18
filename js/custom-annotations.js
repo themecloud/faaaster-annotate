@@ -42,6 +42,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   const wpuser = appConfig.user;
   const wpemail = appConfig.email;
   const wpannotate = appConfig.annotate;
+  const disabledStatus = appConfig.disabled;
 
   var anno = null;
   let annotateblock = false;
@@ -119,7 +120,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   // Get user and annotateMode from cookie
   let faaasterAnnotate = getCookieValue("faaaster-annotate")
     ? JSON.parse(getCookieValue("faaaster-annotate"))
-    : { username: undefined, annotateMode: false, showIntro: true };
+    : { username: undefined, annotateMode: false, showIntro: true, disabled: false };
 
   // Init user and annotateMode
   let annotateMode =
@@ -138,7 +139,8 @@ document.addEventListener("DOMContentLoaded", async function () {
     : faaasterAnnotate.email
       ? faaasterAnnotate.email
       : false;
-  let showIntro = faaasterAnnotate.showIntro ?? "true";
+  let showIntro = faaasterAnnotate.showIntro ?? true;
+  let disabled = disabledStatus == false ? false : faaasterAnnotate.disabled;
   setCookie(
     "faaaster-annotate",
     JSON.stringify({
@@ -146,6 +148,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       email: email,
       annotateMode: annotateMode,
       showIntro: showIntro,
+      disabled: disabled,
     }),
     30
   );
@@ -200,19 +203,20 @@ document.addEventListener("DOMContentLoaded", async function () {
   var closeIntro = document.getElementById("intro-close");
   closeIntro.addEventListener("click", function () {
     introModal.classList.add("faaaster-hidden");
-    showIntro = "false";
+    showIntro = false;
     setCookie(
       "faaaster-annotate",
       JSON.stringify({
         username: user,
         email: email,
-        annotateMode: true,
-        showIntro: "false",
+        annotateMode: annotateMode,
+        showIntro: false,
+        disabled: disabled,
       }),
       30
     );
   });
-  if (showIntro === "false") {
+  if (showIntro === false) {
     introModal.classList.add("faaaster-hidden");
   }
 
@@ -237,6 +241,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         email: email,
         annotateMode: true,
         showIntro: showIntro,
+        disabled: disabled,
       }),
       30
     );
@@ -413,6 +418,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             email: email,
             annotateMode: false,
             showIntro: showIntro,
+            disabled: disabled,
           }),
           30
         );
@@ -439,6 +445,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             email: email,
             annotateMode: true,
             showIntro: showIntro,
+            disabled: disabled,
           }),
           30
         );
@@ -964,11 +971,43 @@ document.addEventListener("DOMContentLoaded", async function () {
         sideBAr.classList.remove("sideBarHidden");
       }
     }
-    if (event.target.id == "disableToggle" && annotateMode == true) {
+    if (event.target.id == "disableToggle") {
+      setCookie(
+        "faaaster-annotate",
+        JSON.stringify({
+          username: user,
+          email: email,
+          annotateMode: false,
+          showIntro: false,
+          disabled: true,
+        }),
+        30
+      );
+      // Get the current URL
+      const currentUrl = window.location.href;
+
+      // Create a URL object (to easily manipulate different parts of the URL)
+      const url = new URL(currentUrl);
+
+      // Check if the URL has the 't' query parameter
+      if (url.searchParams.has('t')) {
+          // Remove the 't' query parameter
+          url.searchParams.delete('t');
+
+          // Navigate to the URL without the 't' parameter
+          window.location.href = url.href;
+      } else {
+          // If there's no 't' parameter, you can optionally reload the page
+          // Or do nothing, depending on your needs
+          console.log("Query parameter 't' not found.");
+          window.location.reload(); 
+      }
+      
     }
     if (event.target.id == "navigateToggle" && annotateMode == true) {
       annotateToggle.classList.remove("selected");
       event.target.classList.add("selected");
+      modal.style.display = "none";
       const newEvent = new MouseEvent("click", {
         bubbles: true,
         cancelable: true,
