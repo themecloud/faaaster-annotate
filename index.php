@@ -23,11 +23,11 @@ function enqueue_recogito_scripts()
     if (!isset($_COOKIE['trial_bypass'])) {
         return;
     }
-    if (isset($_COOKIE['faaaster-annotate']) ){       
-        $faaaster_annotate_cookie=$_COOKIE['faaaster-annotate'];
-        $faaaster_annotate= json_decode(stripslashes($faaaster_annotate_cookie));
-        $disabled=$faaaster_annotate->disabled;
-        if ($disabled == true && !isset($_GET['t'])){
+    if (isset($_COOKIE['faaaster-annotate'])) {
+        $faaaster_annotate_cookie = $_COOKIE['faaaster-annotate'];
+        $faaaster_annotate = json_decode(stripslashes($faaaster_annotate_cookie));
+        $disabled = $faaaster_annotate->disabled;
+        if ($disabled == true && !isset($_GET['t'])) {
             return;
         }
     }
@@ -36,7 +36,7 @@ function enqueue_recogito_scripts()
     if (isset($_GET['t']) && isset($_COOKIE['faaaster-annotate'])) {
         $faaaster_annotate = $_COOKIE['faaaster-annotate'];
         $disabled = false;
-    }  
+    }
 
     // Check if constants are set
     if (!APP_ID || !BRANCH) {
@@ -200,6 +200,7 @@ add_action('rest_api_init', function () {
     register_rest_route('annotate/v1', '/annotations/', array(
         'methods' => 'GET',
         'callback' => 'fetch_annotations',
+        'permission_callback' => '__return_true',
     ));
 });
 
@@ -207,6 +208,7 @@ add_action('rest_api_init', function () {
     register_rest_route('annotate/v1', '/proxy/', array(
         'methods' => 'POST',
         'callback' => 'handle_proxy_request',
+        'permission_callback' => '__return_true',
     ));
 });
 
@@ -214,5 +216,6 @@ add_action('rest_api_init', function () {
     register_rest_route('annotate/v1', '/users/', array(
         'methods' => 'POST',
         'callback' => 'handle_users_request',
+        'permission_callback' => '__return_true',
     ));
 });
