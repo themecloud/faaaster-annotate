@@ -47,9 +47,8 @@ document.addEventListener("DOMContentLoaded", async function () {
   var anno = null;
   let annotateblock = false;
   const homeUrl = window.location.protocol + "//" + window.location.host;
-  var encodedPathName = (window.location.host + window.location.pathname)
-    .replace(/\//g, "-")
-    .replace(/\./g, "-");
+  var encodedPathName = window.location.pathname
+    .replace(/\//g, "\\");
   var targetElement = document.body;
   let wpAdminBarHeight = 0;
   if (document.getElementById("wpadminbar")) {
@@ -1000,9 +999,9 @@ document.addEventListener("DOMContentLoaded", async function () {
           // If there's no 't' parameter, you can optionally reload the page
           // Or do nothing, depending on your needs
           console.log("Query parameter 't' not found.");
-          window.location.reload(); 
+          window.location.reload();
       }
-      
+
     }
     if (event.target.id == "navigateToggle" && annotateMode == true) {
       annotateToggle.classList.remove("selected");
