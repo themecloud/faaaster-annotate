@@ -47,7 +47,10 @@ document.addEventListener("DOMContentLoaded", async function () {
   var anno = null;
   let annotateblock = false;
   const homeUrl = window.location.protocol + "//" + window.location.host;
-  var encodedPathName = window.location.pathname
+  var encodedPathName = (window.location.host + window.location.pathname)
+    .replace(/\//g, "-")
+    .replace(/\./g, "-");
+  var newEncodedPathName = window.location.pathname
     .replace(/\//g, "\\");
   var targetElement = document.body;
   let wpAdminBarHeight = 0;
@@ -496,8 +499,8 @@ document.addEventListener("DOMContentLoaded", async function () {
         })
         .catch((error) => console.error("Error:", error));
     }
-
-    await fetch("/wp-json/annotate/v1/annotations/?url=" + encodedPathName, {
+    let loadPath = newEncodedPathName;
+    await fetch("/wp-json/annotate/v1/annotations/?url=" + newEncodedPathName, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -506,13 +509,17 @@ document.addEventListener("DOMContentLoaded", async function () {
       .then((response) => response.json())
       .then((data) => {
         // console.log("Success:", data);
+        if (data.length == 0) {
+          loadPath = encodedPathName;
+        }
       })
       .catch((error) => console.error("Error:", error));
+
 
     // Load existing annotations
     await anno
       .loadAnnotations(
-        "/wp-json/annotate/v1/annotations?url=" + encodedPathName
+        "/wp-json/annotate/v1/annotations?url=" + loadPath
       )
       .then(function (annotations) {
         loading.classList.add("faaaster-hidden");
@@ -546,7 +553,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       updateSidebar(commentsData);
       optimizeAnnotations(commentsData);
       setupClickListeners();
-      fetch("/wp-json/annotate/v1/proxy/?url=" + encodedPathName, {
+      fetch("/wp-json/annotate/v1/proxy/?url=" + newEncodedPathName, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -574,7 +581,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       optimizeAnnotations(commentsData);
       setupClickListeners();
 
-      fetch("/wp-json/annotate/v1/proxy/?url=" + encodedPathName, {
+      fetch("/wp-json/annotate/v1/proxy/?url=" + newEncodedPathName, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
