@@ -51,7 +51,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     .replace(/\//g, "-")
     .replace(/\./g, "-");
   var newEncodedPathName = window.location.pathname
-    .replace(/\//g, "\\");
+    .replace(/\//g, "%%");
   var targetElement = document.body;
   let wpAdminBarHeight = 0;
   if (document.getElementById("wpadminbar")) {
