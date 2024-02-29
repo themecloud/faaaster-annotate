@@ -9,15 +9,16 @@
 
 /****** ActonBar ******/
 #actionBar{
+    box-sizing:border-box;
     background-color:#00458b;
     display:flex;
     justify-content:space-around;
     border-radius:22px;
-    width:150px;
+    width: 134px;
     position:fixed;
     bottom:10px;
     left:50%;
-    margin-left:-60px;
+    margin-left:-67px;
     padding:6px 5px;
     z-index:999999;
     box-shadow: 0px 8px 30px rgba(0, 0, 0, 0.25);
@@ -25,8 +26,9 @@
 }
 
 .actionBarButton{
-    width: 30px;
-    height:30px;
+    box-sizing:border-box;
+    width: 32px;
+    height:32px;
     border-radius:25px;
     background-color: #00458b !important;
     border: 1px solid #4082c7 !important;
@@ -587,13 +589,15 @@
     position:fixed;
     left:50%;
     width:250px;
-    margin-left:-160px;
+    margin-left:-180px;
     bottom:60px;
     background-color: #fefefe;
     padding: 12px;
     border: 2px solid #3fd2c6;
     border-radius:12px;
     color:black !important;
+    font-size: 16px !important;
+    line-height: 22px !important;
     z-index: 999999;
 }
 .faaaster-modal-intro:after{
@@ -615,9 +619,10 @@
 }
 #intro-close{
     position: absolute;
+    box-sizing: border-box;
     font-size: 16px;
-    height: 20px;
-    width: 20px;
+    height: 25px;
+    width: 25px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -628,6 +633,7 @@
     cursor:pointer;
     padding: 3px 5px 5px 5px;
     color:black !important;
+    box-sizing: border-box;
 }
 #intro-close:hover{
     background:#3fd2c6;
