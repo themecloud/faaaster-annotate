@@ -70,12 +70,14 @@ function enqueue_recogito_scripts()
         // Get email
         $email = $current_user->user_email;
     }
+    if (isset($_GET['annotate'])) {
+        $annotate = $_GET['annotate'];
+    }
 
     // Check if 'annotate' and 'user' query parameters are set and valid
-    if (isset($_GET['user']) && isset($_GET['annotate']) && isset($_GET['user'])) {
+    if (isset($_GET['user']) && isset($_GET['user'])) {
         $username = $_GET['user'];
         $email = $_GET['email'];
-        $annotate = $_GET['annotate'];
     }
     // Localize script to pass data from PHP to JavaScript
     wp_localize_script('custom-annotations-js', 'appConfig', array(
