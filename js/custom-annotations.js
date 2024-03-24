@@ -1,6 +1,16 @@
 document.addEventListener("DOMContentLoaded", async function () {
-  if (window !== window.top) {
-    // The page is loaded inside an iframe
+
+  // Test if page is loaded inside an iframe
+  var isIframe = window !== window.top;
+
+  // Test if mobile device
+  var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+  // Test if window width < 768px
+  var isSmallScreen = window.innerWidth < 768;
+
+  // Return if mobile device, small screen or iframe
+  if(isMobile || isSmallScreen || isIframe) {
     return;
   }
 

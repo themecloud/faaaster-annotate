@@ -737,7 +737,7 @@
   /* Hide action bar on mobile */
 
     @media (max-width: 768px) {
-        #actionBar {
+        #actionBar, #userModal {
         display: none;
         }
     }
