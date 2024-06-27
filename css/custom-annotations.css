@@ -72,6 +72,7 @@
     font-size:14px;
     transition:right 0.3s ease;
     z-index:99998;
+    max-height:calc(100vh + 50px);
 }
 #annotationSidebar.sideBarHidden {
     right: -300px;
