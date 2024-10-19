@@ -42,17 +42,16 @@ function enqueue_recogito_scripts()
     if (!APP_ID || !BRANCH) {
         return;
     }
-
+    $mu_path = "/" . str_replace(ABSPATH, '', WPMU_PLUGIN_DIR);
 
     // Enqueue recogito.js
-    wp_enqueue_script('recogito-js', plugin_dir_url(__FILE__) . 'js/recogito.min.js', array(), '1.0.0', false);
-    wp_enqueue_style('recogito', plugin_dir_url(__FILE__) . 'css/recogito.min.css');
+    wp_enqueue_script('recogito-js', $mu_path . '/annotate/js/recogito.min.js', array(), '1.0.0', false);
+    wp_enqueue_style('recogito', $mu_path . '/annotate/css/recogito.min.css');
 
     // Enqueue custom js
-    wp_enqueue_script('custom-annotations-js', plugin_dir_url(__FILE__) . 'js/custom-annotations.js', array('recogito-js'), '1.0.0', false);
+    wp_enqueue_script('custom-annotations-js', $mu_path . '/annotate/js/custom-annotations.js', array('recogito-js'), '1.0.0', false);
     // Enqueue custom css
-    wp_enqueue_style('recogito-custom', plugin_dir_url(__FILE__) . 'css/custom-annotations.css');
-
+    wp_enqueue_style('recogito-custom', $mu_path . '/annotate/css/custom-annotations.css');
     // Get the current WordPress locale
     $locale = get_locale();
 
