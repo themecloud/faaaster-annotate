@@ -2,220 +2,365 @@
 
 /**
  * Plugin Name: Faaaster Annotations
- * Description: Collect feedback on your WordPress website thanks to visual annoatations. Powered by recogito.js.
- * Version: 1.0
+ * Description: Visual feedback & collaboration on your WordPress website — leave annotations directly on the front-end.
+ * Version: 2.0.0
  * Author: Faaaster.io
  * Author URI: https://www.faaaster.io/
  */
 
-// Hook for enqueuing scripts
-add_action('wp_enqueue_scripts', 'enqueue_recogito_scripts');
+if (!defined('ABSPATH')) {
+    exit;
+}
 
-function enqueue_recogito_scripts()
+define('FAAASTER_ANNOTATE_VERSION', '2.0.0');
+
+/**
+ * Decide whether the widget should load for this request.
+ * Same gating rules as v1: trial_bypass cookie required, "disabled" flag in
+ * the faaaster-annotate cookie wins unless the request carries ?t= (share link).
+ */
+function faaaster_annotate_should_load()
 {
-    // Init variables
-    $annotate = false;
-    $username = null;
-    $email = null;
-    $disabled = null;
-
-    // Check if cookie trial_bypass is set
     if (!isset($_COOKIE['trial_bypass'])) {
-        return;
+        return false;
     }
-    if (isset($_COOKIE['faaaster-annotate'])) {
-        $faaaster_annotate_cookie = $_COOKIE['faaaster-annotate'];
-        $faaaster_annotate = json_decode(stripslashes($faaaster_annotate_cookie));
-        $disabled = $faaaster_annotate->disabled;
-        if ($disabled == true && !isset($_GET['t'])) {
-            return;
+
+    if (!defined('APP_ID') || !defined('BRANCH') || !APP_ID || !BRANCH) {
+        return false;
+    }
+
+    if (isset($_COOKIE['faaaster-annotate']) && !isset($_GET['t'])) {
+        $state = json_decode(stripslashes($_COOKIE['faaaster-annotate']));
+        if ($state && !empty($state->disabled)) {
+            return false;
         }
     }
 
-    // Toggle disabled if request is annotation link
-    if (isset($_GET['t']) && isset($_COOKIE['faaaster-annotate'])) {
-        $faaaster_annotate = $_COOKIE['faaaster-annotate'];
-        $disabled = false;
-    }
+    return true;
+}
 
-    // Check if constants are set
-    if (!APP_ID || !BRANCH) {
+add_action('wp_enqueue_scripts', 'faaaster_annotate_enqueue');
+
+function faaaster_annotate_enqueue()
+{
+    if (!faaaster_annotate_should_load()) {
         return;
     }
 
-    // Enqueue recogito.js
-    wp_enqueue_script('recogito-js', plugin_dir_url(__FILE__) . 'js/recogito.min.js', array(), '1.0.0', false);
-    wp_enqueue_style('recogito', plugin_dir_url(__FILE__) . 'css/recogito.min.css');
+    $bundle = plugin_dir_path(__FILE__) . 'dist/faaaster-annotate.js';
+    if (!file_exists($bundle)) {
+        return;
+    }
 
-    // Enqueue custom js
-    wp_enqueue_script('custom-annotations-js', plugin_dir_url(__FILE__) . 'js/custom-annotations.js', array('recogito-js'), '1.0.0', false);
-    // Enqueue custom css
-    wp_enqueue_style('recogito-custom', plugin_dir_url(__FILE__) . 'css/custom-annotations.css');
-    // Get the current WordPress locale
-    $locale = get_locale();
+    wp_enqueue_script(
+        'faaaster-annotate',
+        plugin_dir_url(__FILE__) . 'dist/faaaster-annotate.js',
+        array(),
+        FAAASTER_ANNOTATE_VERSION . '-' . filemtime($bundle),
+        true
+    );
 
-    // error_log(isset($_COOKIE['faaaster-annotate']) || (isset($_GET['annotate']) && $_GET['annotate'] === 'true' && isset($_GET['user'])));
-
-    // Get the current user information
+    // Identity: WP user if logged in, otherwise optional ?user= / ?email=
+    // from share links (the widget falls back to its own cookie / modal).
+    $username = null;
+    $email = null;
     $current_user = wp_get_current_user();
-
-    // Check if a user is logged in
     if ($current_user->exists()) {
-        // User is logged in
-        // Get username
         $username = $current_user->user_login;
-
-        // Get email
         $email = $current_user->user_email;
     }
-    if (isset($_GET['annotate'])) {
-        $annotate = $_GET['annotate'];
+    if (isset($_GET['user'])) {
+        $username = sanitize_text_field(wp_unslash($_GET['user']));
+    }
+    if (isset($_GET['email'])) {
+        $email = sanitize_email(wp_unslash($_GET['email']));
     }
 
-    // Check if 'annotate' and 'user' query parameters are set and valid
-    if (isset($_GET['user']) && isset($_GET['user'])) {
-        $username = $_GET['user'];
-        $email = $_GET['email'];
-    }
-    // Localize script to pass data from PHP to JavaScript
-    wp_localize_script('custom-annotations-js', 'appConfig', array(
-        'locale' => $locale,
-        'user' =>  $username,
+    wp_localize_script('faaaster-annotate', 'appConfig', array(
+        'locale' => get_locale(),
+        'user' => $username,
         'email' => $email,
-        'annotate' => $annotate,
-        'disabled' => $disabled,
+        'annotate' => isset($_GET['annotate']) ? sanitize_text_field(wp_unslash($_GET['annotate'])) : false,
+        'disabled' => false,
+        'restBase' => esc_url_raw(rest_url()),
     ));
 }
 
-// Fetch annotations
-
-function fetch_annotations(WP_REST_Request $request)
+/**
+ * REST proxy to the Faaaster API — unchanged routes from v1
+ * (annotate/v1/annotations, annotate/v1/proxy, annotate/v1/users).
+ */
+function faaaster_annotate_api_base()
 {
-    $url = $request->get_param('url');
-    // Include manager.php to access the constants
-    include_once('/app/.include/manager.php');
-    // Get existing annotations from the API
-    $api_url = 'https://app.faaaster.io/api/applications/' . APP_ID . '/instances/' . BRANCH . '/annotate?url=' . $url;
+    if (file_exists('/app/.include/manager.php')) {
+        include_once '/app/.include/manager.php';
+    }
+    if (!defined('APP_ID') || !defined('BRANCH') || !defined('WP_API_KEY')) {
+        return null;
+    }
+    return 'https://app.faaaster.io/api/applications/' . APP_ID . '/instances/' . BRANCH . '/annotate';
+}
 
-    // Define the request arguments
-    $args = array(
+function faaaster_annotate_fetch(WP_REST_Request $request)
+{
+    $base = faaaster_annotate_api_base();
+    if (!$base) {
+        return new WP_Error('not_configured', 'Faaaster API constants missing', array('status' => 500));
+    }
+
+    // Site-wide listing (annotations of every page, each with its `url` key).
+    // Upstream route to implement Next-side; status is propagated so the
+    // widget can hide the feature while it doesn't exist (404).
+    if ($request->get_param('scope') === 'site') {
+        $response = wp_remote_get($base . '/all', array(
+            'headers' => array(
+                'Authorization' => 'Bearer ' . WP_API_KEY,
+            ),
+        ));
+        if (is_wp_error($response)) {
+            return new WP_Error('request_failed', 'API request failed', array('status' => 502));
+        }
+        nocache_headers();
+        return new WP_REST_Response(
+            json_decode(wp_remote_retrieve_body($response), true),
+            wp_remote_retrieve_response_code($response) ?: 502
+        );
+    }
+
+    // Page key: raw "%%"-encoded path, forwarded as-is (backend partitions on it).
+    $url = sanitize_text_field($request->get_param('url'));
+
+    $response = wp_remote_get($base . '?url=' . $url, array(
         'headers' => array(
-            'Authorization' => 'Bearer ' .  WP_API_KEY, // Add the Authorization header with the API key
+            'Authorization' => 'Bearer ' . WP_API_KEY,
         ),
-    );
-    // Make the API call
-    $response = wp_remote_get($api_url, $args);
-    if (!$response) {
-        error_log("Update event error");
-    }
+    ));
 
     if (is_wp_error($response)) {
         return new WP_Error('request_failed', 'API request failed', array('status' => 500));
     }
-    //error_log(json_encode($response));
-    $annotations = json_decode(wp_remote_retrieve_body($response), true);
 
-    // Make the API call
-    $response = wp_remote_get($api_url, $args);
-
-    if (is_wp_error($response)) {
-        return new WP_Error('request_failed', 'API request failed', array('status' => 500));
-    }
     nocache_headers();
-    // You may format the response as needed
     return rest_ensure_response(json_decode(wp_remote_retrieve_body($response), true));
 }
 
-// Push annotations
-
-function handle_proxy_request(WP_REST_Request $request)
+function faaaster_annotate_save(WP_REST_Request $request)
 {
-    $url = $request->get_param('url');
-    // Extract data from the request
-    $data = $request->get_json_params();
+    $base = faaaster_annotate_api_base();
+    if (!$base) {
+        return new WP_Error('not_configured', 'Faaaster API constants missing', array('status' => 500));
+    }
 
-    // The API URL you want to call
-    $api_url = 'https://app.faaaster.io/api/applications/' . APP_ID . '/instances/' . BRANCH . '/annotate';
+    $url = sanitize_text_field($request->get_param('url'));
 
-
-    // Define the request arguments
-    $args = array(
+    $response = wp_remote_post($base, array(
         'body' => json_encode(array(
             'url' => $url,
-            'data' => $data
+            'data' => $request->get_json_params(),
         )),
         'headers' => array(
             'Content-Type' => 'application/json',
-            'Authorization' => 'Bearer ' .  WP_API_KEY, // Add the Authorization header with the API key
+            'Authorization' => 'Bearer ' . WP_API_KEY,
         ),
-    );
-
-    // Make the API call
-    $response = wp_remote_post($api_url, $args);
+    ));
 
     if (is_wp_error($response)) {
         return new WP_Error('request_failed', 'API request failed', array('status' => 500));
     }
+
     nocache_headers();
-    // You may format the response as needed
     return rest_ensure_response(json_decode(wp_remote_retrieve_body($response), true));
 }
 
-// Handle users
-
-function handle_users_request(WP_REST_Request $request)
+/**
+ * Unit operations: forward a single-annotation upsert/delete to the Faaaster
+ * API. The upstream status code is propagated so the widget can detect an
+ * API that doesn't support unit ops yet (404) and fall back to full saves.
+ */
+function faaaster_annotate_upsert(WP_REST_Request $request)
 {
-    // Extract data from the request
-    $data = $request->get_json_params();
-    // error_log("users".json_encode($data));
+    $base = faaaster_annotate_api_base();
+    if (!$base) {
+        return new WP_Error('not_configured', 'Faaaster API constants missing', array('status' => 500));
+    }
 
-    // The API URL you want to call
-    $api_url = 'https://app.faaaster.io/api/applications/' . APP_ID . '/instances/' . BRANCH . '/annotate/users';
-
-
-    // Define the request arguments
-    $args = array(
+    $response = wp_remote_post($base . '/annotation', array(
         'body' => json_encode(array(
-            'data' => $data
+            'url' => sanitize_text_field($request->get_param('url')),
+            'annotation' => $request->get_json_params(),
         )),
         'headers' => array(
             'Content-Type' => 'application/json',
-            'Authorization' => 'Bearer ' .  WP_API_KEY, // Add the Authorization header with the API key
+            'Authorization' => 'Bearer ' . WP_API_KEY,
         ),
+    ));
+
+    if (is_wp_error($response)) {
+        return new WP_Error('request_failed', 'API request failed', array('status' => 502));
+    }
+
+    nocache_headers();
+    return new WP_REST_Response(
+        json_decode(wp_remote_retrieve_body($response), true),
+        wp_remote_retrieve_response_code($response) ?: 502
     );
-    // Make the API call
-    $response = wp_remote_post($api_url, $args);
+}
+
+function faaaster_annotate_remove(WP_REST_Request $request)
+{
+    $base = faaaster_annotate_api_base();
+    if (!$base) {
+        return new WP_Error('not_configured', 'Faaaster API constants missing', array('status' => 500));
+    }
+
+    $response = wp_remote_request($base . '/annotation', array(
+        'method' => 'DELETE',
+        'body' => json_encode(array(
+            'url' => sanitize_text_field($request->get_param('url')),
+            'id' => sanitize_text_field($request->get_param('id')),
+        )),
+        'headers' => array(
+            'Content-Type' => 'application/json',
+            'Authorization' => 'Bearer ' . WP_API_KEY,
+        ),
+    ));
+
+    if (is_wp_error($response)) {
+        return new WP_Error('request_failed', 'API request failed', array('status' => 502));
+    }
+
+    nocache_headers();
+    return new WP_REST_Response(
+        json_decode(wp_remote_retrieve_body($response), true),
+        wp_remote_retrieve_response_code($response) ?: 502
+    );
+}
+
+/**
+ * File upload proxy (attachments & creation screenshots). The file is
+ * validated locally (size, MIME) then streamed as a raw binary body to the
+ * Faaaster API, which stores it in GCS and returns its URL:
+ *   POST {api}/annotate/upload
+ *   Headers: Content-Type, X-File-Name, X-Page-Url, Authorization
+ *   Response: { url, name, type, size }
+ * Until that route is implemented upstream, the propagated 404 makes the
+ * widget hide the attachments UI and skip screenshots.
+ */
+function faaaster_annotate_upload(WP_REST_Request $request)
+{
+    $base = faaaster_annotate_api_base();
+    if (!$base) {
+        return new WP_Error('not_configured', 'Faaaster API constants missing', array('status' => 500));
+    }
+
+    $files = $request->get_file_params();
+    if (empty($files['file']) || !is_uploaded_file($files['file']['tmp_name'])) {
+        return new WP_Error('no_file', 'No file provided', array('status' => 400));
+    }
+    $file = $files['file'];
+
+    if ($file['size'] > 5 * 1024 * 1024) {
+        return new WP_Error('too_large', 'File exceeds 5 MB', array('status' => 413));
+    }
+
+    $allowed = array(
+        'image/jpeg',
+        'image/png',
+        'image/webp',
+        'image/gif',
+        'application/pdf',
+        'application/zip',
+        'application/x-zip-compressed',
+    );
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $mime = finfo_file($finfo, $file['tmp_name']);
+    finfo_close($finfo);
+    if (!in_array($mime, $allowed, true)) {
+        return new WP_Error('bad_type', 'File type not allowed', array('status' => 415));
+    }
+
+    $response = wp_remote_post($base . '/upload', array(
+        'timeout' => 30,
+        'body' => file_get_contents($file['tmp_name']),
+        'headers' => array(
+            'Content-Type' => $mime,
+            'X-File-Name' => sanitize_file_name($file['name']),
+            'X-Page-Url' => sanitize_text_field($request->get_param('url')),
+            'Authorization' => 'Bearer ' . WP_API_KEY,
+        ),
+    ));
+
+    if (is_wp_error($response)) {
+        return new WP_Error('request_failed', 'API request failed', array('status' => 502));
+    }
+
+    nocache_headers();
+    return new WP_REST_Response(
+        json_decode(wp_remote_retrieve_body($response), true),
+        wp_remote_retrieve_response_code($response) ?: 502
+    );
+}
+
+function faaaster_annotate_users(WP_REST_Request $request)
+{
+    $base = faaaster_annotate_api_base();
+    if (!$base) {
+        return new WP_Error('not_configured', 'Faaaster API constants missing', array('status' => 500));
+    }
+
+    $response = wp_remote_post($base . '/users', array(
+        'body' => json_encode(array(
+            'data' => $request->get_json_params(),
+        )),
+        'headers' => array(
+            'Content-Type' => 'application/json',
+            'Authorization' => 'Bearer ' . WP_API_KEY,
+        ),
+    ));
 
     if (is_wp_error($response)) {
         return new WP_Error('request_failed', 'API request failed', array('status' => 500));
     }
+
     nocache_headers();
-    // You may format the response as needed
     return rest_ensure_response(json_decode(wp_remote_retrieve_body($response), true));
 }
-
-// Define REST routes
 
 add_action('rest_api_init', function () {
     register_rest_route('annotate/v1', '/annotations/', array(
         'methods' => 'GET',
-        'callback' => 'fetch_annotations',
+        'callback' => 'faaaster_annotate_fetch',
         'permission_callback' => '__return_true',
     ));
-});
 
-add_action('rest_api_init', function () {
     register_rest_route('annotate/v1', '/proxy/', array(
         'methods' => 'POST',
-        'callback' => 'handle_proxy_request',
+        'callback' => 'faaaster_annotate_save',
         'permission_callback' => '__return_true',
     ));
-});
 
-add_action('rest_api_init', function () {
+    register_rest_route('annotate/v1', '/annotation/', array(
+        array(
+            'methods' => 'POST',
+            'callback' => 'faaaster_annotate_upsert',
+            'permission_callback' => '__return_true',
+        ),
+        array(
+            'methods' => 'DELETE',
+            'callback' => 'faaaster_annotate_remove',
+            'permission_callback' => '__return_true',
+        ),
+    ));
+
+    register_rest_route('annotate/v1', '/upload/', array(
+        'methods' => 'POST',
+        'callback' => 'faaaster_annotate_upload',
+        'permission_callback' => '__return_true',
+    ));
+
     register_rest_route('annotate/v1', '/users/', array(
         'methods' => 'POST',
-        'callback' => 'handle_users_request',
+        'callback' => 'faaaster_annotate_users',
         'permission_callback' => '__return_true',
     ));
 });

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Faaaster Annotate — page de test</title>
+  <style>
+    body { margin: 0; font-family: Georgia, serif; color: #222; }
+    header { background: #1d3557; color: #fff; padding: 48px 24px; text-align: center; }
+    header h1 { margin: 0 0 8px; font-size: 40px; }
+    nav { position: sticky; top: 0; background: #457b9d; padding: 12px 24px; display: flex; gap: 24px; }
+    nav a { color: #fff; text-decoration: none; font-family: sans-serif; }
+    main { max-width: 760px; margin: 0 auto; padding: 40px 24px; line-height: 1.7; }
+    .hero-img { width: 100%; height: 220px; background: linear-gradient(120deg, #a8dadc, #e63946); border-radius: 12px; }
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 32px 0; }
+    .card { border: 1px solid #ddd; border-radius: 8px; padding: 16px; font-family: sans-serif; }
+    button.cta { background: #e63946; color: #fff; border: none; padding: 12px 28px; border-radius: 8px; font-size: 16px; cursor: pointer; }
+    footer { background: #1d3557; color: #fff; padding: 32px 24px; text-align: center; margin-top: 64px; }
+  </style>
+  <script>
+    // ---- Mock WordPress environment ----
+    document.cookie = "trial_bypass=1; path=/";
+    window.appConfig = {
+      locale: "fr_FR",
+      user: null,
+      email: null,
+      annotate: false,
+      disabled: false,
+      restBase: "/wp-json",
+      pollInterval: 3000,
+    };
+
+    // In-memory store mocking the annotate/v1 REST routes.
+    // window.__faMock.unitOps = false simulates a backend without the
+    // per-annotation routes (the widget must fall back to full saves).
+    (function () {
+      const store = { annotations: JSON.parse(localStorage.getItem("fa-test") || "[]") };
+      window.__faMock = { store, unitOps: true, uploads: true, site: true, log: [] };
+      const save = () => localStorage.setItem("fa-test", JSON.stringify(store.annotations));
+      const ok = (data) => Promise.resolve(new Response(JSON.stringify(data), { status: 200 }));
+      const realFetch = window.fetch.bind(window);
+      window.fetch = function (url, options) {
+        const u = String(url);
+        const method = options && options.method ? options.method : "GET";
+        if (u.includes("/wp-json/annotate/v1/annotation/")) {
+          window.__faMock.log.push(method + " /annotation");
+          if (!window.__faMock.unitOps) {
+            return Promise.resolve(new Response("{}", { status: 404 }));
+          }
+          if (method === "DELETE") {
+            const id = decodeURIComponent(u.split("id=")[1]);
+            store.annotations = store.annotations.filter(a => a.id !== id);
+          } else {
+            const annotation = JSON.parse(options.body);
+            const i = store.annotations.findIndex(a => a.id === annotation.id);
+            if (i === -1) store.annotations.push(annotation);
+            else store.annotations[i] = annotation;
+          }
+          save();
+          return ok({ success: true });
+        }
+        if (u.includes("/wp-json/annotate/v1/upload/")) {
+          window.__faMock.log.push("POST /upload");
+          if (!window.__faMock.uploads) {
+            return Promise.resolve(new Response("{}", { status: 404 }));
+          }
+          const file = options.body.get("file");
+          return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(ok({
+              url: reader.result, name: file.name, type: file.type, size: file.size,
+            }));
+            reader.readAsDataURL(file);
+          });
+        }
+        if (u.includes("/wp-json/annotate/v1/annotations") && u.includes("scope=site")) {
+          window.__faMock.log.push("GET /annotations?scope=site");
+          if (!window.__faMock.site) {
+            return Promise.resolve(new Response("{}", { status: 404 }));
+          }
+          const key = location.pathname.replace(/\//g, "%%");
+          return ok([
+            ...store.annotations.map(a => ({ ...a, url: key })),
+            {
+              type: "Annotation", id: "#other-page-1", url: "%%tarifs",
+              body: [
+                { type: "TextualBody", purpose: "commenting", value: "Le tableau des prix déborde sur mobile",
+                  creator: { id: "marie@test.io", name: "Marie" },
+                  created: "2026-06-12T10:00:00.000Z", modified: "2026-06-12T10:00:00.000Z" },
+                { type: "TextualBody", purpose: "tagging", value: "Nouveau" }
+              ],
+              target: { source: "/tarifs" }, meta: { kind: "pin", viewport: { w: 390, h: 844 } }, index: 1
+            }
+          ]);
+        }
+        if (u.includes("/wp-json/annotate/v1/annotations")) {
+          return ok(store.annotations);
+        }
+        if (u.includes("/wp-json/annotate/v1/proxy")) {
+          window.__faMock.log.push("POST /proxy");
+          store.annotations = JSON.parse(options.body);
+          save();
+          return ok({ success: true });
+        }
+        if (u.includes("/wp-json/annotate/v1/users")) {
+          return ok({ success: true });
+        }
+        return realFetch(url, options);
+      };
+    })();
+  </script>
+</head>
+<body>
+  <header>
+    <h1>Studio Horizon</h1>
+    <p>Agence créative — branding, web &amp; contenu</p>
+  </header>
+  <nav>
+    <a href="#services">Services</a>
+    <a href="#works">Réalisations</a>
+    <a href="#contact">Contact</a>
+  </nav>
+  <main>
+    <div class="hero-img"></div>
+    <h2 id="services">Nos services</h2>
+    <p>
+      Nous concevons des identités de marque mémorables et des sites web
+      performants. Chaque projet commence par une phase d'écoute approfondie
+      pour comprendre vos enjeux et votre audience.
+    </p>
+    <div class="cards">
+      <div class="card"><h3>Branding</h3><p>Logos, chartes graphiques et territoires de marque.</p></div>
+      <div class="card"><h3>Web design</h3><p>Sites vitrines, e-commerce et applications sur mesure.</p></div>
+      <div class="card"><h3>Contenu</h3><p>Photo, vidéo et rédaction orientée conversion.</p></div>
+    </div>
+    <h2 id="works">Réalisations récentes</h2>
+    <p>
+      De la PME locale au groupe international, nous accompagnons nos clients
+      dans la durée. Découvrez quelques études de cas représentatives de notre
+      approche artisanale du design.
+    </p>
+    <button class="cta">Demander un devis</button>
+  </main>
+  <footer id="contact">
+    <p>Studio Horizon — 12 rue des Lilas, 75011 Paris</p>
+  </footer>
+  <script src="../dist/faaaster-annotate.js"></script>
+</body>
+</html>
