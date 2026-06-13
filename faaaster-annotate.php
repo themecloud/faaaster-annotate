@@ -3,7 +3,7 @@
 /**
  * Plugin Name: Faaaster Annotations
  * Description: Visual feedback & collaboration on your WordPress website — leave annotations directly on the front-end.
- * Version: 2.0.0
+ * Version: 2.0.1
  * Author: Faaaster.io
  * Author URI: https://www.faaaster.io/
  */
@@ -12,7 +12,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('FAAASTER_ANNOTATE_VERSION', '2.0.0');
+define('FAAASTER_ANNOTATE_VERSION', '2.0.1');
 
 /**
  * Decide whether the widget should load for this request.

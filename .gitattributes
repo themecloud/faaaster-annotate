@@ -1,0 +1,11 @@
+# Keep the release tarball (GitHub archive/refs/tags/*.tar.gz, consumed by the
+# wp-builder Dockerfile) minimal: ship only the runtime plugin + built bundle,
+# not the source/tooling.
+/src           export-ignore
+/test          export-ignore
+/.claude       export-ignore
+/build.mjs     export-ignore
+/package.json  export-ignore
+/package-lock.json export-ignore
+/.gitignore    export-ignore
+/.gitattributes export-ignore

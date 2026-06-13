@@ -1,6 +1,6 @@
 {
   "name": "faaaster-annotate",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "private": true,
   "description": "Faaaster visual feedback & annotation widget for WordPress",
   "type": "module",
