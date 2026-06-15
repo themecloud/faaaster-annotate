@@ -27,9 +27,9 @@ export function PinLayer({ annotations, positions, openId, onOpen, draftPos }) {
               event.stopPropagation();
               onOpen(annotation.id);
             }}
-            title={"#" + annotation.index}
+            title={"#" + (annotation.number ?? annotation.index)}
           >
-            <span>{annotation.index}</span>
+            <span>{annotation.number ?? annotation.index}</span>
           </button>
         );
       })}

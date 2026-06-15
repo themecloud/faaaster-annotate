@@ -197,7 +197,7 @@ export function Sidebar({
                   }}
                 >
                   <span class="fa-item-pin" style={{ "--fa-pin-color": status.color }}>
-                    {annotation.index}
+                    {annotation.number ?? annotation.index}
                   </span>
                   <span class="fa-item-body">
                     <span class="fa-item-text">{(comments[0] || {}).value || ""}</span>

@@ -71,7 +71,15 @@ function mergeAnnotation(serverAnn, localAnn, locallyTouched, deletedBodyKeys) {
       undefined,
   };
   if (!meta.screenshot) delete meta.screenshot;
-  return { ...localAnn, meta, body: tag ? [...comments, tag] : comments };
+  // The site-wide number is immutable and server-assigned — keep whichever
+  // side already has it.
+  const number = localAnn.number != null ? localAnn.number : serverAnn.number;
+  return {
+    ...localAnn,
+    number,
+    meta,
+    body: tag ? [...comments, tag] : comments,
+  };
 }
 
 /**

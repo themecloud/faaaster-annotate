@@ -57,14 +57,25 @@
           if (method === "DELETE") {
             const id = decodeURIComponent(u.split("id=")[1]);
             store.annotations = store.annotations.filter(a => a.id !== id);
+            save();
+            return ok({ success: true });
+          }
+          const annotation = JSON.parse(options.body);
+          const i = store.annotations.findIndex(a => a.id === annotation.id);
+          if (i === -1) {
+            // Simulate the server-assigned immutable number (offset 100 to
+            // distinguish from the widget's local per-page index).
+            if (annotation.number == null) {
+              store.counter = (store.counter || 100) + 1;
+              annotation.number = store.counter;
+            }
+            store.annotations.push(annotation);
           } else {
-            const annotation = JSON.parse(options.body);
-            const i = store.annotations.findIndex(a => a.id === annotation.id);
-            if (i === -1) store.annotations.push(annotation);
-            else store.annotations[i] = annotation;
+            if (annotation.number == null) annotation.number = store.annotations[i].number;
+            store.annotations[i] = annotation;
           }
           save();
-          return ok({ success: true });
+          return ok({ success: true, number: annotation.number });
         }
         if (u.includes("/wp-json/annotate/v1/upload/")) {
           window.__faMock.log.push("POST /upload");

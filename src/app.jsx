@@ -223,7 +223,20 @@ export function App() {
           } else {
             // Send the freshest local version at execution time.
             const annotation = annotationsRef.current.find((a) => a.id === op.id);
-            if (annotation) await upsertAnnotation(annotation);
+            if (annotation) {
+              const result = await upsertAnnotation(annotation);
+              // The server assigns the immutable site-wide number on creation;
+              // reflect it locally (no re-save).
+              if (result && result.number != null) {
+                apply((prev) =>
+                  prev.map((a) =>
+                    a.id === op.id && a.number !== result.number
+                      ? { ...a, number: result.number }
+                      : a
+                  )
+                );
+              }
+            }
           }
           return;
         } catch (error) {

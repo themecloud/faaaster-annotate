@@ -116,7 +116,7 @@ export function Thread({
     >
       <div class="fa-thread-header">
         <span class="fa-thread-index" style={{ "--fa-pin-color": statusInfo(status).color }}>
-          {annotation.index}
+          {annotation.number ?? annotation.index}
         </span>
         <select
           class="fa-status-select"
