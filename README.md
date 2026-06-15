@@ -50,11 +50,11 @@ réécriture du tableau complet à chaque modification) :
 - `DELETE /wp-json/annotate/v1/annotation/?url=<clé>&id=<id>` — proxifié vers
   `DELETE {api}/annotate/annotation` avec `{ url, id }`.
 
-**Côté Next (à implémenter)** : ces deux routes doivent appliquer la
-modification dans une **transaction Firestore** (lire le tableau de la page,
-remplacer/insérer/supprimer l'entrée par `id`, réécrire) pour rendre le
-read-modify-write atomique. Recalculer les `index` (tri par `body[0].created`)
-dans la transaction.
+**Côté Next (✅ implémenté)** : `annotate/annotation/index.ts` applique la
+modification dans une **transaction Firestore** (`admin.firestore().runTransaction` :
+lire le tableau de la page, remplacer/insérer/supprimer l'entrée par `id`,
+recalcul des `index` par `body[0].created`, réécriture) — read-modify-write
+atomique. La route legacy `POST /annotate` (tableau complet) est conservée.
 
 **Fallback transitoire** : tant que l'API upstream répond 404 sur
 `/annotation`, le widget bascule automatiquement (et pour la session) sur le
@@ -74,10 +74,16 @@ il proxifie :
   côté WP (5 Mo max ; jpeg/png/webp/gif/pdf/zip), puis forwardé en binaire
   brut vers `POST {api}/annotate/upload` avec les en-têtes `Content-Type`,
   `X-File-Name`, `X-Page-Url` et `Authorization: Bearer`.
-- **Réponse attendue côté Next** : `{ url, name, type, size }` (l'URL GCS
-  publique ou signée). Tant que la route upstream répond 404, le widget
-  masque l'UI de pièces jointes et saute les captures — déployable avant le
-  backend.
+- **Réponse côté Next** : `{ url, name, type, size }`. Tant que la route
+  répond 404/501, le widget masque l'UI de pièces jointes et saute les
+  captures — déployable avant le backend.
+
+**Côté Next (✅ implémenté)** : `annotate/upload/index.ts` (bodyParser désactivé,
+lecture binaire brute, upload vers `process.env.GCS_ANNOTATE_BUCKET` sous
+`annotations/<instance>/<uuid>.<ext>`, objet public). **Action infra requise** :
+créer le bucket GCS en lecture publique (`allUsers` → Storage Object Viewer,
++ CORS) et définir `GCS_ANNOTATE_BUCKET` dans le `.env` Next. Sans ça la route
+renvoie 501. La vue site (`?scope=site`) est servie par `annotate/all/index.ts`.
 
 Deux usages côté widget :
 

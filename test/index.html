@@ -35,7 +35,14 @@
     // per-annotation routes (the widget must fall back to full saves).
     (function () {
       const store = { annotations: JSON.parse(localStorage.getItem("fa-test") || "[]") };
-      window.__faMock = { store, unitOps: true, uploads: true, site: true, log: [] };
+      const q = new URLSearchParams(location.search);
+      window.__faMock = {
+        store,
+        unitOps: !q.has("nounit"),
+        uploads: !q.has("noupload"),
+        site: !q.has("nosite"),
+        log: [],
+      };
       const save = () => localStorage.setItem("fa-test", JSON.stringify(store.annotations));
       const ok = (data) => Promise.resolve(new Response(JSON.stringify(data), { status: 200 }));
       const realFetch = window.fetch.bind(window);

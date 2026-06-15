@@ -98,7 +98,11 @@ function faaaster_annotate_api_base()
     if (!defined('APP_ID') || !defined('BRANCH') || !defined('WP_API_KEY')) {
         return null;
     }
-    return 'https://app.faaaster.io/api/applications/' . APP_ID . '/instances/' . BRANCH . '/annotate';
+    // Host overridable for local/staging testing (e.g. a tunnel pointing at a
+    // local Next): define('FAAASTER_API_HOST', 'https://local.faaaster.io') in
+    // wp-config.php or manager.php. Defaults to production.
+    $host = defined('FAAASTER_API_HOST') ? rtrim(FAAASTER_API_HOST, '/') : 'https://app.faaaster.io';
+    return $host . '/api/applications/' . APP_ID . '/instances/' . BRANCH . '/annotate';
 }
 
 function faaaster_annotate_fetch(WP_REST_Request $request)

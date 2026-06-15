@@ -1,4 +1,4 @@
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { STATUSES, statusInfo } from "../config.js";
 import { t, statusLabel } from "../lib/i18n.js";
 import { getComments, getStatus, getCreator, lastActivity } from "../lib/model.js";
@@ -73,20 +73,32 @@ export function Sidebar({
   const [filter, setFilter] = useState("all");
   const [expandedId, setExpandedId] = useState(null);
   const [scope, setScope] = useState("page");
-  const [siteAvailable, setSiteAvailable] = useState(true);
+  const [siteAvailable, setSiteAvailable] = useState(false);
   const [siteAnnotations, setSiteAnnotations] = useState(null);
+  const probedRef = useRef(false);
 
-  // Site-wide list: fetched when switching scope; 404 → feature hidden
-  // (route not implemented upstream yet).
+  // Probe site-wide support the first time the sidebar opens. The route is
+  // served by Next/GCS and may not be deployed yet — only reveal the
+  // Page/Site switch if it actually answers, so it never appears just to
+  // vanish on click. The probe response doubles as the initial dataset.
   useEffect(() => {
-    if (scope !== "site" || !open) return;
+    if (!open || probedRef.current) return;
+    probedRef.current = true;
+    fetchSiteAnnotations()
+      .then((data) => {
+        setSiteAnnotations(data);
+        setSiteAvailable(true);
+      })
+      .catch(() => setSiteAvailable(false));
+  }, [open]);
+
+  // Refresh the site list each time we switch to it (keeps it current).
+  useEffect(() => {
+    if (scope !== "site" || !siteAvailable) return;
     fetchSiteAnnotations()
       .then(setSiteAnnotations)
-      .catch((error) => {
-        if (error.unsupported) setSiteAvailable(false);
-        setScope("page");
-      });
-  }, [scope, open]);
+      .catch(() => setScope("page"));
+  }, [scope, siteAvailable]);
 
   const isSite = scope === "site" && Array.isArray(siteAnnotations);
   const source = isSite ? siteAnnotations : annotations;
