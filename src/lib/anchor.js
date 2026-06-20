@@ -66,6 +66,20 @@ export function hasFixedAncestor(el) {
   return false;
 }
 
+// Short, single-line text fingerprint of an element, used as a re-anchoring
+// fallback (findByText) when the CSS selector breaks. Prefers visible text,
+// then accessible labels (icon-only buttons). Capped short so it tends to live
+// in a single text node (what findByText matches against).
+function elementText(el) {
+  const raw =
+    (el.innerText || el.textContent || "").trim() ||
+    el.getAttribute("aria-label") ||
+    el.getAttribute("alt") ||
+    el.getAttribute("title") ||
+    "";
+  return raw.replace(/\s+/g, " ").trim().slice(0, 80);
+}
+
 // Build the anchor for a click at viewport coords (x, y) on element el.
 export function buildAnchor(el, x, y) {
   const rect = el.getBoundingClientRect();
@@ -74,6 +88,7 @@ export function buildAnchor(el, x, y) {
     relX: rect.width ? (x - rect.left) / rect.width : 0.5,
     relY: rect.height ? (y - rect.top) / rect.height : 0.5,
     fixed: hasFixedAncestor(el),
+    text: elementText(el),
   };
 }
 
@@ -92,13 +107,16 @@ function selectorsOf(annotation) {
 }
 
 function findByText(quote) {
-  if (!quote) return null;
+  // Compare on whitespace-normalized text both sides, so a stored single-line
+  // quote still matches live text that wraps / has irregular spacing.
+  const needle = (quote || "").replace(/\s+/g, " ").trim();
+  if (!needle) return null;
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
     acceptNode(node) {
       if (node.parentElement && node.parentElement.closest("#" + HOST_ID)) {
         return NodeFilter.FILTER_REJECT;
       }
-      return node.textContent.includes(quote)
+      return (node.textContent || "").replace(/\s+/g, " ").includes(needle)
         ? NodeFilter.FILTER_ACCEPT
         : NodeFilter.FILTER_SKIP;
     },
@@ -127,12 +145,22 @@ export function resolveAnchor(annotation) {
     }
   }
 
-  // v1 (recogito) annotations target a text quote — best effort re-anchor.
+  // Fallback by text quote — for v1 (recogito) annotations AND for new pins
+  // whose CSS selector no longer resolves (DOM changed). Reuse the pin's
+  // recorded relative position when we have it, so the re-anchored pin lands at
+  // the right spot in the matched element rather than dead-center.
   const quote = selectors.find((s) => s.type === "TextQuoteSelector");
   if (quote && quote.exact) {
     const el = findByText(quote.exact.trim());
     if (el) {
-      return { el, relX: 0.5, relY: 0.5, fixed: hasFixedAncestor(el), legacy: true };
+      const rel = fragment ? parseFragment(fragment.value) : null;
+      return {
+        el,
+        relX: rel ? rel.relX : 0.5,
+        relY: rel ? rel.relY : 0.5,
+        fixed: hasFixedAncestor(el),
+        legacy: true,
+      };
     }
   }
 

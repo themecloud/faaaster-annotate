@@ -47,6 +47,12 @@ export function createAnnotation({ text, creator, anchor, attachments }) {
           conformsTo: "http://www.w3.org/TR/media-frags/",
           value: `xywh=percent:${anchor.relX.toFixed(4)},${anchor.relY.toFixed(4)},0,0`,
         },
+        // Re-anchoring fallback when the CSS selector breaks (DOM changed):
+        // resolveAnchor falls back to findByText. Standard W3C TextQuoteSelector,
+        // so v1/dashboard keep reading it. Omitted when the element has no text.
+        ...(anchor.text
+          ? [{ type: "TextQuoteSelector", exact: anchor.text }]
+          : []),
       ],
     },
     meta: {

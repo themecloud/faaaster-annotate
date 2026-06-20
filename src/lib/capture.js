@@ -39,10 +39,46 @@ function encode(canvas) {
   });
 }
 
-export async function captureViewport() {
+// Draws the pin marker on the cropped canvas (the widget itself is excluded
+// from the html-to-image render, so the real pin isn't there — we add it). A
+// white-ringed dot over a soft halo, visible on any background. `px/py` are
+// already in crop-canvas pixels.
+function drawPin(ctx, px, py) {
+  const r = Math.max(9, ctx.canvas.width * 0.014);
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(px, py, r + 2, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(0, 0, 0, 0.28)";
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(px, py, r, 0, Math.PI * 2);
+  ctx.fillStyle = "#ffffff";
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(px, py, r - Math.max(2, r * 0.3), 0, Math.PI * 2);
+  ctx.fillStyle = "#f43f5e"; // statut « Nouveau » (cohérent avec un pin frais)
+  ctx.fill();
+  ctx.restore();
+}
+
+// `pin` (optional): { el, relX, relY } — the anchored element + relative
+// position; its viewport point is snapshotted with the SAME scroll as the crop
+// so the marker lands exactly where the pin is.
+export async function captureViewport(pin) {
   const scale = Math.min(1, TARGET_WIDTH / window.innerWidth);
   const scrollX = window.scrollX;
   const scrollY = window.scrollY;
+
+  let pinPt = null;
+  if (pin && pin.el && pin.el.getBoundingClientRect) {
+    const r = pin.el.getBoundingClientRect();
+    if (r.width || r.height) {
+      pinPt = {
+        x: r.left + r.width * (pin.relX == null ? 0.5 : pin.relX),
+        y: r.top + r.height * (pin.relY == null ? 0.5 : pin.relY),
+      };
+    }
+  }
 
   // Render the full page at reduced scale, excluding our own UI.
   const canvas = await withTimeout(
@@ -72,6 +108,10 @@ export async function captureViewport() {
     crop.width,
     crop.height
   );
+
+  if (pinPt) {
+    drawPin(ctx, pinPt.x * scale, pinPt.y * scale);
+  }
 
   const blob = await encode(crop);
   return {

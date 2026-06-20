@@ -302,8 +302,8 @@ export function App() {
   // then patched into the annotation through a unit upsert. Entirely best
   // effort — any failure just means no screenshot.
   const attachScreenshot = useCallback(
-    (id) => {
-      captureViewport()
+    (id, pin) => {
+      captureViewport(pin)
         .then(({ blob, width, height }) => {
           const ext = blob.type === "image/webp" ? "webp" : "jpg";
           const file = new File([blob], "capture-" + id.replace("#", "") + "." + ext, {
@@ -337,13 +337,18 @@ export function App() {
       anchor: draft.anchor,
       attachments,
     });
+    // Capture l'élément + position relative AVANT de vider le draft, pour
+    // dessiner le pin dans le screenshot de contexte (capturé juste après).
+    const pin = draft.el
+      ? { el: draft.el, relX: draft.anchor.relX, relY: draft.anchor.relY }
+      : null;
     setDraft(null);
     persist((prev) => reindex([...prev, annotation]), {
       type: "upsert",
       id: annotation.id,
     });
     setOpenId(annotation.id);
-    if (uploadsEnabled) attachScreenshot(annotation.id);
+    if (uploadsEnabled) attachScreenshot(annotation.id, pin);
   };
 
   const onReply = (id, text, attachments) => {
